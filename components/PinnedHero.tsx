@@ -123,29 +123,16 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
   const colorOverrideRef = useRef<"white" | "black" | null>(null);
   const isMenuOpenRef = useRef(isMenuOpen);
 
-  // Helper to change browser status bar color
-  const setMetaThemeColor = (color: string) => {
-    let meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute('name', 'theme-color');
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', color);
-  };
-
   // --- COLOR SYSTEM ---
   const updateColors = () => {
     // Default: White Logo, Transparent Glass
     let targetColor = '#FFFBF7'; 
     let glassBg = 'rgba(255, 255, 255, 0)';
-    let metaColor = '#990000'; // Default Hero Red
 
     // 1. MENU OPEN: Always Black Logo, Clear Glass
     if (isMenuOpenRef.current) {
         targetColor = '#1a1a1a';
         glassBg = 'rgba(255, 255, 255, 0)';
-        metaColor = '#FFFBF7'; // Match Menu Background
     } 
     // 2. SCROLL OVERRIDES
     else if (colorOverrideRef.current) {
@@ -153,13 +140,10 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
             targetColor = '#1a1a1a';
             // SOLID WHITE GLASS to hide any gaps/backgrounds
             glassBg = 'rgba(255, 255, 255, 1)';
-            metaColor = '#ffffff'; // Match White Glass
         } else {
             // WHITE MODE (e.g. F1 Image, Craftsmanship)
             targetColor = '#FFFBF7';
             glassBg = 'rgba(255, 255, 255, 0)';
-            metaColor = '#000000'; // Match Dark Backgrounds (F1 Image / Craftsmanship)
-            // Correction: For F1 Image it is white text on dark bg, so theme color black.
         }
     } 
     // 3. HERO THEME FALLBACK
@@ -167,20 +151,15 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
         if (bottleThemeRef.current === 'dark') {
              targetColor = '#1a1a1a';
              glassBg = 'rgba(255, 255, 255, 0.5)'; // Slight visibility for white bottle
-             metaColor = '#ffffff'; // White Bottle Background
         } else {
              targetColor = '#FFFBF7';
              glassBg = 'rgba(255, 255, 255, 0)';
-             metaColor = '#990000'; // Red Bottle Background
         }
     }
 
     if (svgRef.current) gsap.to(svgRef.current.querySelectorAll("path"), { fill: targetColor, duration: 0.3 });
     if (menuIconRef.current) gsap.to(menuIconRef.current.querySelectorAll(".menu-dot"), { backgroundColor: targetColor, duration: 0.3 });
     if (glassRef.current) gsap.to(glassRef.current, { backgroundColor: glassBg, duration: 0.3, ease: 'power1.out' });
-    
-    // Update Browser UI Color
-    setMetaThemeColor(metaColor);
   };
 
   useEffect(() => {
