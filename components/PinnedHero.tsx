@@ -169,37 +169,30 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
 
   // --- SCROLL TRIGGERS ---
   useLayoutEffect(() => {
-    // We use a unified trigger approach with priority to ensure correctness after pinning
     const triggers: ScrollTrigger[] = [];
 
     // TRIGGER 1: THE BLACK ZONE
-    // Spans from the F1 Card (top) to the end of Experience Section.
-    // Uses refreshPriority: -1 to calculate AFTER the F1Story pin is handled.
     triggers.push(ScrollTrigger.create({
       trigger: "#f1-card",
-      start: "top 15px",  // Starts when Card touches header logo area
+      start: "top 15px",  
       endTrigger: "#experience-section",
-      end: "bottom 15px", // Ends when Experience section leaves header
+      end: "bottom 15px",
       refreshPriority: -1, 
       onToggle: (self) => {
         if (self.isActive) {
            colorOverrideRef.current = 'black'; 
         } else {
-           // When leaving this zone (either up to F1 image or down to Craftsmanship), 
-           // we want white logo (and thus Dark Theme Color).
            colorOverrideRef.current = 'white'; 
         }
         updateColors();
       }
     }));
 
-    // Trigger force refresh to ensure positions are recalculated
     ScrollTrigger.refresh();
-
     return () => triggers.forEach(t => t.kill());
   }, []);
 
-  // --- MENU & HERO ANIMATIONS (Unchanged) ---
+  // --- MENU & HERO ANIMATIONS ---
   useEffect(() => {
     isMenuOpenRef.current = isMenuOpen;
     const tl = gsap.timeline();
@@ -254,13 +247,35 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
   }, [activeSubmenu]);
 
   useEffect(() => {
-    const finalLogoTop = '12px'; const logoLeft = '15px'; const initialScale = 2.9; const finalScale = 0.85;   
+    // SAFE AREA LOGIC: Use calc() with env(safe-area-inset-top) for correct positioning on iPhone X+
+    const finalLogoTop = 'calc(12px + env(safe-area-inset-top))'; 
+    const logoLeft = '15px'; 
+    const initialScale = 2.9; 
+    const finalScale = 0.85;   
+    
+    // Set initial logo position (accounting for Safe Area)
     gsap.set(svgRef.current, { position: 'absolute', top: '10%', left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
     gsap.set('#amp, #chandon', { opacity: 0, x: 15 });
     gsap.set(glassRef.current, { opacity: 0 });
+    
+    // Set initial Menu Icon position (accounting for Safe Area)
     gsap.set(menuIconRef.current, { opacity: 0, scale: 0.5, right: '15px', top: finalLogoTop, position: 'absolute', zIndex: 50 });
+    
+    // Explicitly set initial mask state to full screen (no clip)
+    gsap.set(maskRef.current, { clipPath: 'inset(0% 0% 0% 0% round 0px)' });
+
+    // Transition from Black to Red for the background container to avoid "Red Flash" at top 0
+    // Start black (invisible against body), turn Red (brand color) only when scrolling starts
+    gsap.set(pinRef.current, { backgroundColor: '#000000' });
+
     const tl = gsap.timeline({ scrollTrigger: { trigger: pinRef.current, start: 'top top', end: '+=100%', pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true, } });
+    
+    // Animation now starts from 0% inset (full screen) to the pill shape.
     tl.to(maskRef.current, { clipPath: 'inset(15% 12% 5% 12% round 1000px)', duration: 0.6, ease: 'power2.inOut' }, 0);
+    
+    // Fade background from Black to Red as we scroll down and form the pill
+    tl.to(pinRef.current, { backgroundColor: '#990000', duration: 0.3 }, 0);
+
     tl.to(svgRef.current, { top: finalLogoTop, scale: finalScale, duration: 0.8, ease: 'power2.inOut' }, 0);
     tl.to('#amp', { opacity: 1, x: 0, duration: 0.3, ease: 'power1.out' }, 0.1);
     tl.to('#chandon', { opacity: 1, x: 0, duration: 0.3, ease: 'power1.out' }, 0.2);
@@ -274,7 +289,13 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
   return (
     <>
       <div className="sticky top-0 z-50 w-full h-0 overflow-visible pointer-events-none">
-         <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-6 pt-[100px] pointer-events-auto" style={{ clipPath: 'circle(0% at 90% 5%)', visibility: 'hidden' }}>
+         {/* Menu Overlay: Added dynamic padding-top for Safe Area */}
+         <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-6 pointer-events-auto" 
+              style={{ 
+                  clipPath: 'circle(0% at 90% 5%)', 
+                  visibility: 'hidden',
+                  paddingTop: 'calc(80px + env(safe-area-inset-top))' // Safe Area Aware
+              }}>
             <div ref={menuListRef} className="flex flex-col w-full h-full pb-10">
                 {activeSubmenu === null ? (
                     <>
@@ -337,7 +358,13 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
          </div>
 
          <div className="relative w-full h-screen z-50 overflow-hidden">
-             <div ref={glassRef} className="header-glass absolute top-0 left-0 w-full" style={{ position: 'absolute' }} />
+             {/* Header Glass: Dynamic Height for Safe Area */}
+             <div ref={glassRef} className="header-glass absolute top-0 left-0 w-full" 
+                  style={{ 
+                      position: 'absolute',
+                      height: 'calc(100px + env(safe-area-inset-top))' 
+                  }} />
+             
              <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="318" height="34" viewBox="0 0 318 34" fill="none" className="pointer-events-auto overflow-visible transition-colors">
                 <g id="moet">
                   <path d="M25.4569 9.8501L28.1813 7.14246C27.0355 7.14246 23.3496 7.14246 21.3223 7.13435C18.9986 12.5091 15.9056 19.4647 15.2485 20.8995L8.86226 7.11814H1.89905L4.63145 9.88253C4.63145 9.88253 2.66829 28.7225 2.54810 30.2142L0 32.7029H7.04333L4.39106 30.1088L6.26608 12.1443L14.1107 27.8389C14.6556 26.5986 20.9697 12.4118 21.3063 11.6011C21.3864 12.3308 23.8383 29.6143 23.8864 30.2628L21.4906 32.711H30.9378L28.3256 30.1007C28.2855 29.5332 25.5691 11.0418 25.4569 9.8501Z" fill="#FFFBF7"/>
@@ -368,8 +395,8 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
               </div>
          </div>
       </div>
-      <div ref={pinRef} className="relative w-full h-[100dvh] overflow-hidden bg-[#990000]">
-         <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0">
+      <div ref={pinRef} className="relative w-full h-[100dvh] overflow-hidden bg-black">
+         <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
             <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/11f5d903204ff61d8f9039e70bcab5eb9b6bce5f/moet222.png')` }} />
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
             <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end pb-[50px] text-white z-10 px-4">
