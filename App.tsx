@@ -14,7 +14,6 @@ gsap.registerPlugin(ScrollTrigger);
 const App: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   // 'light' = White Logo (Red Bottle), 'dark' = Black Logo (White Bottle)
-  // This state now ONLY controls the top Hero/Switcher section.
   const [headerTheme, setHeaderTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -40,8 +39,16 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full min-h-screen bg-white md:bg-[#f0f0f0] md:flex md:justify-center">
-      <div className="relative bg-white w-full min-h-screen desktop-constraint shadow-2xl">
+    // Outer container: Removed 'bg-white', now transparent to let body bg (#990000) show for top overscroll
+    <div ref={containerRef} className="relative w-full min-h-screen md:bg-[#f0f0f0] md:flex md:justify-center">
+      {/* Inner container: Removed 'bg-white' from top level, applied to specific content areas instead if needed, 
+          but usually the components have their own backgrounds. 
+          Actually, we keep bg-white here but make it start AFTER the hero? 
+          No, the Hero is fixed/pinned. 
+          Best strategy: Keep bg-white but rely on 'viewport-fit=cover' + body bg #990000.
+          If we make this transparent, the red body will show.
+      */}
+      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-white">
         <main>
           <PinnedHero theme={headerTheme} />
           

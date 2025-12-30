@@ -5,6 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#990000" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Moët & Chandon | Celebrate the Right Way</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -23,12 +25,13 @@
 
       html, body {
         width: 100%;
+        overscroll-behavior-y: none; /* Helps prevent white bounce on some browsers */
       }
 
       body {
         margin: 0;
         padding: 0;
-        background-color: #ffffff;
+        background-color: #990000; /* Initial Red to match Hero */
         font-family: var(--trenda-font);
         color: #000;
         -webkit-font-smoothing: antialiased;
@@ -110,6 +113,9 @@
         .desktop-constraint {
           max-width: calc(100vh * (393 / 769));
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        body {
+            background-color: #f0f0f0; /* Gray for desktop backdrop */
         }
       }
 

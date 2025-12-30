@@ -125,8 +125,13 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
 
   // Helper to change browser status bar color
   const setMetaThemeColor = (color: string) => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', color);
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', color);
   };
 
   // --- COLOR SYSTEM ---
@@ -154,6 +159,7 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
             targetColor = '#FFFBF7';
             glassBg = 'rgba(255, 255, 255, 0)';
             metaColor = '#000000'; // Match Dark Backgrounds (F1 Image / Craftsmanship)
+            // Correction: For F1 Image it is white text on dark bg, so theme color black.
         }
     } 
     // 3. HERO THEME FALLBACK
@@ -383,7 +389,7 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
               </div>
          </div>
       </div>
-      <div ref={pinRef} className="relative w-full h-screen overflow-hidden bg-[#990000]">
+      <div ref={pinRef} className="relative w-full h-[100dvh] overflow-hidden bg-[#990000]">
          <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0">
             <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/11f5d903204ff61d8f9039e70bcab5eb9b6bce5f/moet222.png')` }} />
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
