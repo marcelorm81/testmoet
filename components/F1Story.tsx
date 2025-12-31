@@ -89,15 +89,13 @@ const F1Story: React.FC = () => {
            id="f1-card"
            ref={cardRef}
            data-header-theme="black"
-           // Enforced aspect-square to make it perfectly square on all devices.
-           // Removed h-auto. Added flex flex-col to manage inner layout.
-           className="relative w-[85%] max-w-[360px] aspect-square bg-[#F4F0EB] pointer-events-auto shadow-2xl flex flex-col"
+           className="relative w-[85%] max-w-[360px] bg-[#F4F0EB] pointer-events-auto shadow-2xl flex flex-col"
          >
             {/* Red Accent Border Top */}
             <div className="absolute top-0 left-0 w-full h-[3px] bg-[#C00115]" />
 
             {/* Content Container - Use flex to distribute content within the square */}
-            <div className="w-full h-full px-7 py-[26px] flex flex-col justify-between">
+            <div className="w-full px-7 py-[35px] flex flex-col justify-between">
                 
                 <div className="flex flex-col gap-4">
                     {/* Headline - Title line height tight (way smaller than normal) */}
