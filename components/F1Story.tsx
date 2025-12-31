@@ -83,32 +83,33 @@ const F1Story: React.FC = () => {
       <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-12">
          {/* 
             TAGGED: 'black' -> Forces BLACK Logo when over this white card
+            Updated: Compact sizing with reduced padding and gap.
          */}
          <div 
            id="f1-card"
            ref={cardRef}
            data-header-theme="black"
-           className="relative w-[85%] max-w-[360px] h-auto min-h-[45vh] bg-[#F4F0EB] pointer-events-auto shadow-2xl flex flex-col justify-start"
+           className="relative w-[85%] max-w-[360px] h-auto bg-[#F4F0EB] pointer-events-auto shadow-2xl flex flex-col justify-start"
          >
             {/* Red Accent Border Top */}
             <div className="absolute top-0 left-0 w-full h-[3px] bg-[#C00115]" />
 
-            {/* Content Container */}
-            <div className="px-8 pt-8 pb-8 flex flex-col gap-6">
-                {/* Headline */}
+            {/* Content Container - Padding increased by 2px (py-6 is 24px, now py-[26px]) */}
+            <div className="px-7 py-[26px] flex flex-col gap-4">
+                {/* Headline - Title line height tight (way smaller than normal) */}
                 <h2 className="text-[#C00115] font-trenda text-[22px] leading-[24px] font-normal tracking-normal">
                   Gesture <br/>
                   that became <br/>
                   a global icon
                 </h2>
 
-                {/* Body Text */}
-                <p className="text-[#1a1a1a] font-trenda text-[10px] leading-[1.6] font-light">
-                  The podium celebration is one of Formula 1’s most recognisable rituals. A moment when triumph transforms into pure joy. Since the 1960s, Moët & Chandon has stood at the heart of this tradition, marking victories with the unmistakable pop, spray, and sparkle of champagne.
+                {/* Body Text - Line height normal */}
+                <p className="text-[#1a1a1a] font-trenda text-[12px] leading-normal font-light">
+                  The podium celebration is one of Formula 1’s most iconic moments. Since the 1960s, Moët & Chandon has been there when victory turns into joy.
                 </p>
 
                 {/* CTA */}
-                <button className="group flex items-center gap-2 mt-2 text-[#1a1a1a] hover:opacity-70 transition-opacity">
+                <button className="group flex items-center gap-2 mt-1 text-[#1a1a1a] hover:opacity-70 transition-opacity">
                     <span className="font-trenda text-[9px] font-bold tracking-[0] uppercase">
                         Step Inside The Story
                     </span>

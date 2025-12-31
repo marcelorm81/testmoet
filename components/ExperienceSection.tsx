@@ -251,7 +251,7 @@ const ExperienceSection: React.FC = () => {
           ref={scrollContainerRef}
           className="w-full flex gap-5 overflow-x-auto snap-x snap-mandatory px-6 pb-8 hide-scrollbar scroll-smooth cursor-grab"
           style={{ 
-             touchAction: 'pan-y', // Allow vertical page scroll
+             touchAction: 'pan-x pan-y', // Allow native scrolling in both directions
              scrollbarWidth: 'none', 
              msOverflowStyle: 'none',
              WebkitOverflowScrolling: 'touch'
@@ -290,7 +290,8 @@ const ExperienceSection: React.FC = () => {
                     {item.title}
                   </h3>
                   
-                  <p className="text-[#A69F97] font-trenda text-[11px] leading-[1.6] font-light line-clamp-3 mt-2 min-h-[3.2em]">
+                  {/* Updated Body Text: Darker (#706A64) and 1px bigger (12px) */}
+                  <p className="text-[#706A64] font-trenda text-[12px] leading-[1.6] font-light line-clamp-3 mt-2 min-h-[3.2em]">
                     {item.desc}
                   </p>
 

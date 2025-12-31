@@ -95,7 +95,7 @@ const CraftsmanshipCarousel: React.FC = () => {
     };
 
     // --- MOUSE DRAG HANDLERS (Desktop "Swipe") ---
-    // We strictly use this for Mouse events. Touch events are handled natively by CSS 'touch-action: pan-y'.
+    // We strictly use this for Mouse events. Touch events are handled natively by CSS 'touch-action: pan-x pan-y'.
     
     const onMouseDown = (e: MouseEvent) => {
         isDown.current = true;
@@ -186,8 +186,7 @@ const CraftsmanshipCarousel: React.FC = () => {
 
       {/* 2. SCROLL CONTAINER */}
       {/* 
-          - touch-action: pan-y -> CRITICAL. Allows vertical scroll (page) to pass through, 
-            but captures horizontal scroll for the carousel.
+          - touch-action: pan-x pan-y -> CRITICAL. Allows horizontal scroll (carousel) and vertical scroll (page).
           - overflow-x-auto -> Native scroll.
           - snap-x snap-mandatory -> Clean alignment.
       */}
@@ -195,7 +194,7 @@ const CraftsmanshipCarousel: React.FC = () => {
         ref={scrollContainerRef}
         className="absolute inset-0 w-full h-full overflow-x-auto overflow-y-hidden flex snap-x snap-mandatory z-20 cursor-grab active:cursor-grabbing hide-scrollbar"
         style={{ 
-            touchAction: 'pan-y', // Resolves the "conflict" on mobile
+            touchAction: 'pan-x pan-y', // Resolves the conflict on mobile (allows native horizontal swipe)
             WebkitOverflowScrolling: 'touch', // iOS Momentum
         }}
       >
