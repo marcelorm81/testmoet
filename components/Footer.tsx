@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mail, MessageCircle, Instagram, Youtube } from 'lucide-react';
 
@@ -48,7 +47,7 @@ const Footer: React.FC = () => {
       <div className="w-full h-[1px] bg-white/20 mb-12 max-w-[320px] md:max-w-2xl"></div>
 
       {/* 5. FOOTER MENU ITEMS */}
-      <nav className="flex flex-col items-center gap-4 mb-12 text-[10px] uppercase tracking-[0.1em] text-white/90 font-trenda md:flex-row md:flex-wrap md:justify-center md:gap-x-8">
+      <nav className="flex flex-col items-center gap-4 mb-12 text-[10px] uppercase tracking-[0.1em] text-white/90 font-trenda">
         <a href="#" className="hover:text-white/60 transition-colors">Accessibility</a>
         <a href="#" className="hover:text-white/60 transition-colors">Careers</a>
         <a href="#" className="hover:text-white/60 transition-colors">Sitemap</a>

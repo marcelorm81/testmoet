@@ -92,13 +92,13 @@ const F1Story: React.FC = () => {
            className="relative w-[85%] max-w-[360px] h-auto min-h-[45vh] bg-[#F4F0EB] pointer-events-auto shadow-2xl flex flex-col justify-start"
          >
             {/* Red Accent Border Top */}
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-[#990000]" />
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-[#C00115]" />
 
             {/* Content Container */}
             {/* Updated padding: pt-8 (top) and pb-8 (bottom) per user request */}
             <div className="px-8 pt-8 pb-8 flex flex-col gap-6">
                 {/* Headline */}
-                <h2 className="text-[#D20000] font-trenda text-[22px] leading-[24px] font-normal tracking-normal">
+                <h2 className="text-[#C00115] font-trenda text-[22px] leading-[24px] font-normal tracking-normal">
                   Gesture <br/>
                   that became <br/>
                   a global icon

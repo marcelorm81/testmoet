@@ -26,7 +26,7 @@ const Hero: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-[#990000]">
+    <section className="relative w-full h-screen overflow-hidden bg-[#C00115]">
       {/* Background with progressive mask */}
       <div 
         ref={maskRef}
@@ -44,9 +44,9 @@ const Hero: React.FC = () => {
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-trenda font-light leading-[1.1] mb-14 tracking-tight">
             Celebrate the <br/><span className="italic font-normal">Right Way</span>
           </h2>
-          <button className="mx-auto flex items-center space-x-5 bg-white/10 backdrop-blur-2xl border border-white/40 px-14 py-5 rounded-full hover:bg-white hover:text-[#990000] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]">
+          <button className="mx-auto flex items-center space-x-5 bg-white/10 backdrop-blur-2xl border border-white/40 px-14 py-5 rounded-full hover:bg-white hover:text-[#C00115] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]">
             <span className="text-[11px] tracking-[0.3em] uppercase font-black font-trenda">Shop Collection</span>
-            <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#990000]/20 transition-colors">
+            <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#C00115]/20 transition-colors">
                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>

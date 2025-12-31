@@ -1,26 +1,26 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { gsap } from 'gsap';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 const BOTTLES = [
   {
     id: 'red',
     title: 'Moët IMPÉRIALE\nred limited edition',
-    image: 'https://raw.githubusercontent.com/marcelorm81/assets/db2c7a658ac0e7dc017babe421f0e85c999477f2/moetbottle.png',
-    bgColor: '#990000',
-    textColor: '#FFFBF7',
-    theme: 'light' as const // White Logo
+    textColor: '#FFFBF7', // White text for Red Bottle (Start)
+    theme: 'light' as const 
   },
   {
     id: 'white',
     title: 'Moët IMPÉRIALE\nBrut Classic',
-    image: 'https://raw.githubusercontent.com/marcelorm81/assets/db2c7a658ac0e7dc017babe421f0e85c999477f2/moetbottle2.png',
-    bgColor: '#FFFFFF',
-    textColor: '#1a1a1a',
-    theme: 'dark' as const // Black Logo
+    textColor: '#1a1a1a', // Black text for White Bottle (End)
+    theme: 'dark' as const 
   }
 ];
+
+// Video Specs
+const VIDEO_URL = "https://github.com/marcelorm81/assets/blob/84ac379f6c3511a0a306ea2c5c97c1c396159105/switchbootle_moreair.mp4?raw=true";
+const MIN_TIME = 1.0;
+const MAX_TIME = 3.0;
 
 interface BottleSwitcherProps {
   onThemeChange?: (theme: 'light' | 'dark') => void;
@@ -28,214 +28,217 @@ interface BottleSwitcherProps {
 
 const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
   const [index, setIndex] = useState(0);
-  const [dragStart, setDragStart] = useState<number | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Physics State (Refs for performance)
+  const state = useRef({
+    targetTime: MIN_TIME,
+    displayTime: MIN_TIME,
+    isDragging: false,
+    startX: 0,
+    startTimeAtDrag: MIN_TIME,
+  });
 
-  const bottleRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // Initial setup for positions
+  // --- INITIALIZATION ---
   useEffect(() => {
-    // Initialize theme based on default index (0)
-    if (onThemeChange) {
-      onThemeChange(BOTTLES[0].theme);
-    }
+    // Notify parent of initial theme
+    if (onThemeChange) onThemeChange(BOTTLES[0].theme);
+  }, []);
 
-    // Set initial positions based on current index (0)
-    // Active bottle (0) centered. Others (1) off-screen to the right.
-    // Scale reduced from 1.2 to 1.14 (~5% reduction)
-    bottleRefs.current.forEach((el, i) => {
-      if (!el) return;
-      if (i === 0) {
-        gsap.set(el, { xPercent: 0, scale: 1.14, opacity: 1, zIndex: 2 });
-      } else {
-        gsap.set(el, { xPercent: 100, scale: 1.14, opacity: 1, zIndex: 1 });
-      }
-    });
+  // --- PHYSICS LOOP ---
+  useLayoutEffect(() => {
+    let animationFrameId: number;
 
-    contentRefs.current.forEach((el, i) => {
-      if (!el) return;
-      if (i === 0) {
-        // Active content: Relative, Visible
-        gsap.set(el, { autoAlpha: 1, position: 'relative', x: 0 }); 
-      } else {
-        // Inactive content: Absolute, Hidden, No offset
-        gsap.set(el, { autoAlpha: 0, position: 'absolute', top: 0, left: 0, width: '100%', x: 0 });
-      }
-    });
-  }, [onThemeChange]);
+    const loop = () => {
+        const s = state.current;
+        const video = videoRef.current;
 
-  const switchBottle = (newIndex: number) => {
-    if (newIndex === index || isAnimating) return;
-    setIsAnimating(true);
+        if (video) {
+            // Easing Factors:
+            // Heavy/Responsive (0.2) when dragging.
+            // Soft/Luxurious (0.08) when released.
+            const friction = s.isDragging ? 0.2 : 0.08;
+            
+            const diff = s.targetTime - s.displayTime;
+            s.displayTime += diff * friction;
 
-    const direction = newIndex > index ? 1 : -1; 
+            // Apply to video
+            // Check if diff is significant to avoid unnecessary updates
+            if (Math.abs(diff) > 0.0001) {
+               video.currentTime = s.displayTime;
+            }
+        }
+
+        animationFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  // --- GLOBAL EVENT HANDLERS (Window) ---
+  // We use useCallback to keep references stable for add/removeEventListener
+
+  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
+    const s = state.current;
+    if (!s.isDragging) return;
+
+    // Prevent default scrolling on touch devices while dragging
+    if (e.cancelable) e.preventDefault();
+
+    const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+    const deltaX = clientX - s.startX;
     
-    const outgoing = bottleRefs.current[index];
-    const incoming = bottleRefs.current[newIndex];
-    const outgoingContent = contentRefs.current[index];
-    const incomingContent = contentRefs.current[newIndex];
+    // MAPPING: 200px = 2 seconds (0.01s per pixel)
+    // INVERSE DRAG: Drag Left (negative delta) -> Advance Time (positive add).
+    // Formula: newTime = start - (delta * 0.01)
+    let newTime = s.startTimeAtDrag - (deltaX * 0.01);
+    
+    // Clamp constraints
+    if (newTime < MIN_TIME) newTime = MIN_TIME;
+    if (newTime > MAX_TIME) newTime = MAX_TIME;
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        setIsAnimating(false);
-      }
+    s.targetTime = newTime;
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    const s = state.current;
+    if (!s.isDragging) return;
+
+    s.isDragging = false;
+
+    // Clean up window listeners
+    window.removeEventListener('mousemove', handleDragMove);
+    window.removeEventListener('touchmove', handleDragMove);
+    window.removeEventListener('mouseup', handleDragEnd);
+    window.removeEventListener('touchend', handleDragEnd);
+
+    // Snap Logic
+    const midPoint = (MIN_TIME + MAX_TIME) / 2;
+    let newIndex = 0;
+
+    if (s.targetTime >= midPoint) {
+        newIndex = 1;
+        s.targetTime = MAX_TIME;
+    } else {
+        newIndex = 0;
+        s.targetTime = MIN_TIME;
+    }
+
+    // Update React State only if changed
+    setIndex((prevIndex) => {
+        if (prevIndex !== newIndex) {
+            if (onThemeChange) onThemeChange(BOTTLES[newIndex].theme);
+            return newIndex;
+        }
+        return prevIndex;
     });
+  }, [handleDragMove, onThemeChange]);
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const s = state.current;
+    s.isDragging = true;
     
-    // Update state immediately for BG color transition (handled by CSS class)
-    setIndex(newIndex);
-    
-    // Notify parent of theme change
-    if (onThemeChange) {
-      onThemeChange(BOTTLES[newIndex].theme);
-    }
+    const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    s.startX = clientX;
+    s.startTimeAtDrag = s.targetTime;
 
-    const exitTo = direction === 1 ? -150 : 150;
-    const enterFrom = direction === 1 ? 150 : -150;
-
-    // --- BOTTLES (Seamless Slide) ---
-    // Outgoing
-    tl.to(outgoing, {
-      xPercent: exitTo,
-      duration: 1.0,
-      ease: 'power3.inOut'
-    }, 0);
-
-    // Incoming
-    tl.fromTo(incoming, 
-      { xPercent: enterFrom, zIndex: 2 },
-      { xPercent: 0, duration: 1.0, ease: 'power3.inOut' },
-      0
-    );
-
-    // --- CONTENT (Discreet Crossfade - No Movement) ---
-    if (outgoingContent) {
-        tl.to(outgoingContent, {
-            autoAlpha: 0,
-            duration: 0.5,
-            ease: 'power2.inOut'
-        }, 0);
-    }
-
-    if (incomingContent) {
-        // Incoming starts absolute to overlap perfectly
-        tl.fromTo(incomingContent,
-            { autoAlpha: 0, position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 },
-            { autoAlpha: 1, duration: 0.5, ease: 'power2.inOut' },
-            0 // Sync with outgoing fade
-        );
-        
-        // After transition, swap positioning to maintain document flow
-        tl.set(incomingContent, { position: 'relative', clearProps: 'top,left,width,zIndex' });
-        if (outgoingContent) tl.set(outgoingContent, { position: 'absolute', top: 0, left: 0, width: '100%' });
-    }
+    // Attach to window to handle drag outside the component
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('touchmove', handleDragMove, { passive: false });
+    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchend', handleDragEnd);
   };
 
-  const handleDragStart = (clientX: number) => {
-    setDragStart(clientX);
+  // --- CLICK NAVIGATION (Dots) ---
+  const handleDotClick = (i: number) => {
+      const s = state.current;
+      const newTime = i === 0 ? MIN_TIME : MAX_TIME;
+      
+      s.targetTime = newTime;
+      setIndex(i);
+      if (onThemeChange) onThemeChange(BOTTLES[i].theme);
   };
 
-  const handleDragEnd = (clientX: number) => {
-    if (dragStart === null || isAnimating) return;
-    const diff = dragStart - clientX;
-    const threshold = 50; 
-
-    if (Math.abs(diff) > threshold) {
-        // Swipe Left (diff > 0) -> Next Bottle
-        // Swipe Right (diff < 0) -> Prev Bottle
-        const newIndex = diff > 0 
-           ? (index + 1) % BOTTLES.length 
-           : (index - 1 + BOTTLES.length) % BOTTLES.length;
-           
-        switchBottle(newIndex);
-    }
-    setDragStart(null);
-  };
-
-  const current = BOTTLES[index];
+  const currentBottle = BOTTLES[index];
 
   return (
     <section 
-      className="relative w-full min-h-screen flex flex-col items-center justify-start transition-colors duration-1000 py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none"
-      style={{ backgroundColor: current.bgColor }}
-      onMouseDown={(e) => handleDragStart(e.clientX)}
-      onMouseUp={(e) => handleDragEnd(e.clientX)}
-      onMouseLeave={() => setDragStart(null)}
-      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-      onTouchEnd={(e) => handleDragEnd(e.changedTouches[0].clientX)}
+      className="relative w-full min-h-screen flex flex-col items-center justify-start py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none"
+      onMouseDown={handleDragStart}
+      onTouchStart={handleDragStart}
     >
-      {/* Main Container: 393px width, flex column, gap 30px */}
-      <div className="relative z-10 flex flex-col items-center gap-[30px] w-full max-w-[393px]">
-        
-        {/* Bottle Image Container: h-[550px]
-            We render BOTH bottles absolutely.
-        */}
-        <div className="relative h-[550px] w-full overflow-hidden">
-          {BOTTLES.map((bottle, i) => (
-             <div
-               key={bottle.id}
-               ref={(el) => { bottleRefs.current[i] = el; }}
-               className="absolute inset-0 flex items-center justify-center w-full h-full will-change-transform"
-             >
-                <img
-                  src={bottle.image}
-                  alt={bottle.title}
-                  className="h-full w-full object-contain scale-[1.14]"
-                  style={{ aspectRatio: '131/240' }}
-                  draggable={false}
-                />
-             </div>
-          ))}
-        </div>
+      {/* 
+         VIDEO BACKGROUND LAYER 
+         Attributes set for Mobile Safari Optimization (playsInline, muted, autoPlay).
+         Paused immediately on load to prevent auto-playing.
+      */}
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+         <video 
+            ref={videoRef}
+            src={VIDEO_URL}
+            className="w-full h-full object-cover"
+            playsInline
+            muted
+            autoPlay
+            disablePictureInPicture
+            onLoadedData={(e) => {
+                const v = e.currentTarget;
+                v.pause();
+                v.currentTime = MIN_TIME;
+            }}
+         />
+      </div>
 
-        {/* Carousel Buttons: Flex, Gap 4px */}
-        <div className="flex items-center gap-[4px] z-20">
+      {/* 
+         CONTENT LAYER 
+         Overlaid on top of the video using z-index.
+         Pointer events pass through to section for dragging, except on interactive elements.
+      */}
+      <div className="relative z-10 flex flex-col items-center gap-[30px] w-full max-w-[393px] pointer-events-none">
+        
+        {/* Spacer for Bottle Visual */}
+        <div className="h-[550px] w-full pointer-events-none" />
+
+        {/* Dots Navigation */}
+        <div className="flex items-center gap-[4px] z-20 pointer-events-auto">
           {BOTTLES.map((_, i) => (
             <button
               key={i}
-              onClick={(e) => { e.stopPropagation(); switchBottle(i); }}
+              onClick={(e) => { e.stopPropagation(); handleDotClick(i); }}
               className="focus:outline-none transition-all duration-300 p-2"
               aria-label={`Select bottle ${i + 1}`}
             >
               {i === index ? (
-                <svg width="12" height="5" viewBox="0 0 12 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="12" height="5" rx="2.5" fill={current.textColor}/>
+                <svg width="12" height="5" viewBox="0 0 12 5" fill="none">
+                  <rect width="12" height="5" rx="2.5" fill={currentBottle.textColor}/>
                 </svg>
               ) : (
-                <svg width="5" height="5" viewBox="0 0 5 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="2.5" cy="2.5" r="2.5" fill={current.textColor} fillOpacity="0.5"/>
+                <svg width="5" height="5" viewBox="0 0 5 5" fill="none">
+                  <circle cx="2.5" cy="2.5" r="2.5" fill={currentBottle.textColor} fillOpacity="0.5"/>
                 </svg>
               )}
             </button>
           ))}
         </div>
 
-        {/* Bottom Section: Name and CTA */}
-        {/* Removed 'px-6' from here and added to inner items to ensure absolute positioning matches */}
-        <div className="relative w-full min-h-[50px]">
-          {BOTTLES.map((bottle, i) => (
-            <div 
-              key={bottle.id}
-              ref={(el) => { contentRefs.current[i] = el; }}
-              className="flex items-center justify-between gap-[20px] w-full px-6"
-              // Initially, only render the active one as relative, others absolute hidden
-              style={{ 
-                color: bottle.textColor,
-                visibility: i === 0 ? 'visible' : 'hidden' // GSAP will override this on mount
-              }}
-            >
+        {/* Text & CTA */}
+        <div className="relative w-full min-h-[50px] px-6 pointer-events-auto">
+           <div className="flex items-center justify-between gap-[20px] w-full transition-opacity duration-500" style={{ color: currentBottle.textColor }}>
+              
               <div className="flex flex-col justify-center w-[200px]">
-                <h3 className="font-trenda text-[10px] font-semibold leading-[14px] tracking-[0.6px] uppercase whitespace-pre-line text-left">
-                  {bottle.title}
+                <h3 className="font-trenda text-[10px] font-semibold leading-[14px] tracking-[0.6px] uppercase whitespace-pre-line text-left transition-colors duration-500">
+                  {currentBottle.title}
                 </h3>
               </div>
 
               <button 
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-3 px-6 py-3 rounded-[4px] backdrop-blur-2xl transition-transform active:scale-95 shrink-0 group"
+                className="flex items-center gap-3 px-6 py-3 rounded-[4px] backdrop-blur-2xl transition-all duration-300 active:scale-95 shrink-0 group"
                 style={{ 
-                  backgroundColor: bottle.id === 'white' ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.10)',
-                  color: bottle.textColor
+                  backgroundColor: index === 1 ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.10)',
+                  color: currentBottle.textColor,
+                  border: `1px solid ${index === 1 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'}`
                 }}
               >
                   <span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">
@@ -243,14 +246,15 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
                   </span>
                   <div 
                     className="w-4 h-4 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: bottle.id === 'white' ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.20)' }}
+                    style={{ backgroundColor: index === 1 ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.20)' }}
                   >
                     <ChevronRight className="w-3 h-3" />
                   </div>
               </button>
-            </div>
-          ))}
+
+           </div>
         </div>
+
       </div>
     </section>
   );

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -275,7 +276,8 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
     tl.to(maskRef.current, { clipPath: 'inset(18% 15% 5% 15% round 300px 300px 300px 300px)', duration: 0.6, ease: 'power2.inOut' }, 0);
     
     // Fade background from Black to Red as we scroll down to fill the sides/bottom
-    tl.to(pinRef.current, { backgroundColor: '#990000', duration: 0.3 }, 0);
+    // Updated color to #C00115
+    tl.to(pinRef.current, { backgroundColor: '#C00115', duration: 0.3 }, 0);
 
     tl.to(svgRef.current, { top: finalLogoTop, scale: finalScale, duration: 0.8, ease: 'power2.inOut' }, 0);
     tl.to('#amp', { opacity: 1, x: 0, duration: 0.3, ease: 'power1.out' }, 0.1);
@@ -309,8 +311,8 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
                         ))}
                     </div>
                      <div className="mt-auto w-full flex items-center justify-between pb-6">
-                        <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">Newsletter</span><ChevronRight size={10} className="text-[#990000] stroke-[3]" /></button>
-                        <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">English</span><ChevronRight size={10} className="text-[#990000] stroke-[3]" /></button>
+                        <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">Newsletter</span><ChevronRight size={10} className="text-[#C00115] stroke-[3]" /></button>
+                        <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">English</span><ChevronRight size={10} className="text-[#C00115] stroke-[3]" /></button>
                      </div>
                     </>
                 ) : (
@@ -318,8 +320,8 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
                         <div className="flex items-center justify-between mb-6 shrink-0 z-30">
                              <h3 className="font-trenda text-[14px] font-bold text-[#1a1a1a] uppercase tracking-wide">{MENU_DATA.submenus[activeSubmenu].title}</h3>
                              <div className="flex items-center gap-1 cursor-pointer group" onClick={handleBackClick}>
-                                <ChevronLeft size={10} className="text-[#990000] stroke-[3]" />
-                                <span className="text-[#990000] text-[10px] tracking-[0.15em] uppercase font-bold font-trenda">Back</span>
+                                <ChevronLeft size={10} className="text-[#C00115] stroke-[3]" />
+                                <span className="text-[#C00115] text-[10px] tracking-[0.15em] uppercase font-bold font-trenda">Back</span>
                             </div>
                         </div>
                          <div className="flex flex-col gap-4 mb-auto shrink-0 z-30 pointer-events-none">
@@ -347,7 +349,7 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
                                       <div className="w-full h-[180px] rounded-sm overflow-hidden mb-4">
                                           <img src={MENU_DATA.submenus[activeSubmenu].card?.image} alt="Feature" className="w-full h-full object-cover"/>
                                       </div>
-                                      <span className="text-[#990000] text-[9px] font-bold tracking-[0.15em] uppercase block mb-1">{MENU_DATA.submenus[activeSubmenu].card?.subtitle}</span>
+                                      <span className="text-[#C00115] text-[9px] font-bold tracking-[0.15em] uppercase block mb-1">{MENU_DATA.submenus[activeSubmenu].card?.subtitle}</span>
                                       <p className="text-[#1a1a1a] text-[15px] font-normal leading-[1.3] font-trenda">{MENU_DATA.submenus[activeSubmenu].card?.title}</p>
                                   </div>
                                 )
@@ -406,7 +408,7 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
                <div className="text-center max-w-2xl w-full">
                  <p className="text-[9px] tracking-[0.2em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Moët Experiences</p>
                  <h2 className="text-[24px] font-trenda font-normal leading-[1.2] mb-8 tracking-tight">Make It a Moment<br/>to Remember</h2>
-                 <button className="mx-auto flex items-center space-x-3 bg-white/10 backdrop-blur-2xl px-6 py-3 rounded-[4px] hover:bg-white hover:text-[#990000] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]"><span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">DISCOVER</span><div className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#990000]/20 transition-colors"><ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" /></div></button>
+                 <button className="mx-auto flex items-center space-x-3 bg-white/10 backdrop-blur-2xl px-6 py-3 rounded-[4px] hover:bg-white hover:text-[#C00115] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]"><span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">DISCOVER</span><div className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#C00115]/20 transition-colors"><ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" /></div></button>
                </div>
             </div>
          </div>

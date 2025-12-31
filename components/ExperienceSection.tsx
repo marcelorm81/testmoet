@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -97,21 +98,13 @@ const CATEGORIES = ['ALL', 'TOURS', 'BARS', 'DINING'];
 const ExperienceSection: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [displayedItems, setDisplayedItems] = useState(EXPERIENCES);
+  
   const containerRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
-  // --- PHYSICS STATE ---
-  const physicsState = useRef({
-    isDragging: false,
-    startX: 0,
-    lastX: 0,
-    currentScroll: 0,
-    targetScroll: 0,
-    velocity: 0,
-  });
-
-  // Initial Entrance Animation
+  // --- ENTRANCE ANIMATION ---
   useEffect(() => {
     if (titleRef.current) {
       gsap.fromTo(titleRef.current, 
@@ -130,251 +123,313 @@ const ExperienceSection: React.FC = () => {
     }
   }, []);
 
-  // Filter Logic
+  // --- FILTER ANIMATION ---
   const handleFilter = (category: string) => {
     if (category === activeCategory) return;
+    if (!trackRef.current) return;
 
-    // 1. Animate Out
-    gsap.to('.experience-card', {
+    // Fade Out
+    gsap.to(trackRef.current, {
       opacity: 0,
       y: 10,
       duration: 0.2,
-      stagger: 0.03,
       ease: "power1.in",
       onComplete: () => {
-        // 2. Update Data
+        // Update State
         setActiveCategory(category);
         const filtered = category === 'ALL' 
           ? EXPERIENCES 
           : EXPERIENCES.filter(item => item.category === category);
         setDisplayedItems(filtered);
         
-        // Reset scroll position and physics
-        if (carouselRef.current) {
-            carouselRef.current.scrollLeft = 0;
-            physicsState.current.currentScroll = 0;
-            physicsState.current.targetScroll = 0;
-            physicsState.current.velocity = 0;
-        }
+        // Reset Position & Fade In
+        // We use a simplified reset here; actual X reset happens in the LayoutEffect
+        gsap.set(trackRef.current, { x: 0 }); 
+        
+        gsap.to(trackRef.current, {
+           opacity: 1,
+           y: 0,
+           duration: 0.4,
+           ease: "power2.out"
+        });
       }
     });
   };
 
-  // Update animation when items change
-  useLayoutEffect(() => {
-    gsap.fromTo('.experience-card', 
-        { y: 30, opacity: 0 },
-        { 
-            y: 0, 
-            opacity: 1, 
-            duration: 0.5, 
-            stagger: 0.1, 
-            ease: "power2.out",
-            clearProps: "all" 
-        }
-    );
-  }, [displayedItems]);
-
-  // --- PHYSICS LOOP ---
+  // --- GSAP DRAGGABLE IMPLEMENTATION ---
   useEffect(() => {
-    const container = carouselRef.current;
-    if (!container) return;
+    const wrapper = wrapperRef.current;
+    const track = trackRef.current;
+    if (!wrapper || !track) return;
 
-    let animationFrameId: number;
+    // Physics Constants
+    const FRICTION = 0.96;
+    const BOUNCE_EASE = "back.out(0.8)";
+    const DRAG_RESISTANCE = 0.4;
 
-    const updatePhysics = () => {
-        const state = physicsState.current;
-        const maxScroll = container.scrollWidth - container.clientWidth;
+    // State Variables
+    let currentX = 0;
+    let isPressed = false;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let velocity = 0;
+    let isLocked: 'horizontal' | 'vertical' | null = null;
+    let rafId: number;
 
-        // Inertia & Friction (when not dragging)
-        if (!state.isDragging) {
-            state.targetScroll += state.velocity;
-            state.velocity *= 0.95; // Friction factor
+    const getBounds = () => {
+        const wrapperW = wrapper.clientWidth;
+        const trackW = track.scrollWidth;
+        const min = Math.min(0, wrapperW - trackW);
+        return { min, max: 0 };
+    };
+
+    const updatePosition = () => {
+        gsap.set(track, { x: currentX });
+    };
+
+    const onDown = (e: MouseEvent | TouchEvent) => {
+        isPressed = true;
+        isDragging = false;
+        isLocked = null;
+        
+        const cx = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+        const cy = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+        
+        startX = cx;
+        startY = cy;
+        lastX = cx;
+        velocity = 0;
+
+        // Kill any ongoing inertia tweens
+        gsap.killTweensOf(track);
+        // Sync currentX with actual transform in case we interrupted a tween
+        currentX = gsap.getProperty(track, "x") as number;
+
+        wrapper.style.cursor = 'grabbing';
+    };
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+        if (!isPressed) return;
+        
+        const cx = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+        const cy = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+        
+        // DIRECTION LOCKING FOR TOUCH
+        if (isLocked === null && 'touches' in e) {
+            const dx = Math.abs(cx - startX);
+            const dy = Math.abs(cy - startY);
+            if (dx > 5 || dy > 5) {
+                if (dx > dy) {
+                    isLocked = 'horizontal';
+                } else {
+                    isLocked = 'vertical';
+                    // If vertical, release control
+                    isPressed = false;
+                    return;
+                }
+            }
+        }
+        
+        // If locked vertical, do nothing (let native scroll happen)
+        if (isLocked === 'vertical') return;
+
+        // If locked horizontal (or mouse), prevent default to stop page scroll
+        if (isLocked === 'horizontal' && e.cancelable) {
+            e.preventDefault();
         }
 
-        // Bounds Checking
-        if (state.targetScroll < 0) {
-            state.targetScroll = 0;
-            state.velocity = 0;
-        } else if (state.targetScroll > maxScroll) {
-            state.targetScroll = maxScroll;
-            state.velocity = 0;
+        const delta = cx - lastX;
+        lastX = cx;
+        velocity = delta;
+
+        if (Math.abs(cx - startX) > 5) isDragging = true;
+
+        // Apply Drag
+        currentX += delta;
+
+        // Resistance/Rubber-banding at edges
+        const { min, max } = getBounds();
+        if (currentX > max) {
+            // Pulling past start
+            const overflow = currentX - max;
+            currentX = max + overflow * DRAG_RESISTANCE; 
+        } else if (currentX < min) {
+            // Pulling past end
+            const overflow = currentX - min;
+            currentX = min + overflow * DRAG_RESISTANCE;
         }
 
-        // Lerp: Smoothly interpolate current scroll to target scroll
-        // 0.08 is the ease factor. Lower = softer, Higher = snappier.
-        state.currentScroll += (state.targetScroll - state.currentScroll) * 0.08;
+        updatePosition();
+    };
 
-        // Apply scroll if there's significant delta or velocity
-        if (Math.abs(state.targetScroll - state.currentScroll) > 0.1 || Math.abs(state.velocity) > 0.1) {
-            container.scrollLeft = state.currentScroll;
+    const onUp = () => {
+        if (!isPressed) return;
+        isPressed = false;
+        wrapper.style.cursor = 'grab';
+
+        const { min, max } = getBounds();
+
+        // 1. OUT OF BOUNDS SNAP BACK
+        if (currentX > max) {
+            gsap.to(track, { x: max, duration: 0.6, ease: BOUNCE_EASE });
+            return;
+        }
+        if (currentX < min) {
+            gsap.to(track, { x: min, duration: 0.6, ease: BOUNCE_EASE });
+            return;
         }
 
-        animationFrameId = requestAnimationFrame(updatePhysics);
+        // 2. INERTIA THROW
+        // Calculate destination based on velocity
+        // The multiplier determines how "slippery" it feels.
+        const inertiaDest = currentX + (velocity * 16); 
+
+        let dest = inertiaDest;
+        let duration = 0.8;
+        let ease = "power3.out";
+
+        // Check if destination overshoots bounds
+        if (dest > max) {
+            dest = max;
+            ease = "back.out(0.6)"; // Subtle soft landing
+        } else if (dest < min) {
+            dest = min;
+            ease = "back.out(0.6)";
+        }
+
+        gsap.to(track, { 
+            x: dest, 
+            duration: duration, 
+            ease: ease 
+        });
     };
 
-    updatePhysics();
-
-    // Event Handlers attached to container/window for robust drag
-    const onMouseDown = (e: MouseEvent | TouchEvent) => {
-        const state = physicsState.current;
-        state.isDragging = true;
-        const pageX = 'touches' in e ? e.touches[0].pageX : (e as MouseEvent).pageX;
-        state.startX = pageX;
-        state.lastX = pageX;
-        state.velocity = 0;
-        
-        // Sync state with actual scroll position in case we grab mid-animation
-        state.targetScroll = container.scrollLeft;
-        state.currentScroll = container.scrollLeft;
-        
-        container.style.cursor = 'grabbing';
-        // Disable snap to allow free drag
-        container.style.scrollSnapType = 'none';
+    const onClick = (e: Event) => {
+        if (isDragging) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     };
 
-    const onMouseMove = (e: MouseEvent | TouchEvent) => {
-        const state = physicsState.current;
-        if (!state.isDragging) return;
-        if (e.cancelable) e.preventDefault();
-        
-        const pageX = 'touches' in e ? e.touches[0].pageX : (e as MouseEvent).pageX;
-        const delta = pageX - state.startX;
-        
-        // Apply Drag (1.5x multiplier for responsive feel)
-        state.targetScroll = state.currentScroll - delta * 1.5;
-        
-        // Calculate velocity for throw
-        state.velocity = -(pageX - state.lastX) * 1.5;
-        
-        state.startX = pageX; // Reset start for continuous delta
-        state.lastX = pageX;
-    };
-
-    const onMouseUp = () => {
-        physicsState.current.isDragging = false;
-        container.style.cursor = 'grab';
-        // We leave scrollSnapType as 'none' to allow the inertia (lerp) to finish smoothly.
-        // If we want it to snap after stopping, we'd need complex logic to re-enable it 
-        // only when velocity is near zero, but 'none' feels more 'GSAP-like'.
-    };
-
-    // Attach listeners
-    container.addEventListener('mousedown', onMouseDown);
-    container.addEventListener('touchstart', onMouseDown, { passive: false });
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('touchmove', onMouseMove, { passive: false });
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchend', onMouseUp);
+    // Attach Events
+    wrapper.addEventListener('mousedown', onDown);
+    wrapper.addEventListener('touchstart', onDown, { passive: false });
+    
+    window.addEventListener('mousemove', onMove, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
+    
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+    
+    wrapper.addEventListener('click', onClick, true); // Capture phase to block clicks
 
     return () => {
-        cancelAnimationFrame(animationFrameId);
-        container.removeEventListener('mousedown', onMouseDown);
-        container.removeEventListener('touchstart', onMouseDown);
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('touchmove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-        window.removeEventListener('touchend', onMouseUp);
+        wrapper.removeEventListener('mousedown', onDown);
+        wrapper.removeEventListener('touchstart', onDown);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        window.removeEventListener('touchend', onUp);
+        wrapper.removeEventListener('click', onClick, true);
     };
-  }, [displayedItems]); // Re-run if items change layout
+  }, [displayedItems]);
 
   return (
-    <section id="experience-section" ref={containerRef} className="reveal-section py-20 bg-white overflow-hidden">
+    <section id="experience-section" ref={containerRef} className="reveal-section py-24 bg-white overflow-hidden">
       <div className="w-full flex flex-col items-center">
         
         {/* HEADER */}
         <h2 
           ref={titleRef}
-          className="font-handwritten text-[29px] text-[#1a1a1a] mb-12 relative z-0 select-none leading-[1.1] text-center"
+          className="font-handwritten text-[32px] md:text-[40px] text-[#1a1a1a] mb-12 relative z-0 select-none leading-[1.1] text-center"
         >
           Our<br/>Experiences
         </h2>
 
         {/* FILTERS */}
-        <div className="flex flex-wrap justify-center gap-6 mb-12 px-6">
+        <div className="flex flex-wrap justify-center gap-6 mb-16 px-6">
           {CATEGORIES.map((cat) => (
             <button 
               key={cat}
               onClick={() => handleFilter(cat)}
               className="relative py-2 group"
             >
-              <span className={`font-trenda text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300 ${activeCategory === cat ? 'text-[#990000]' : 'text-[#A69F97] group-hover:text-black'}`}>
+              <span className={`font-trenda text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300 ${activeCategory === cat ? 'text-[#C00115]' : 'text-[#A69F97] group-hover:text-black'}`}>
                 {cat === 'ALL' ? 'Show All' : cat}
               </span>
               {/* Active Dot */}
               {activeCategory === cat && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#990000]" />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#C00115]" />
               )}
             </button>
           ))}
         </div>
 
-        {/* CAROUSEL CONTAINER */}
+        {/* CAROUSEL WRAPPER */}
         <div 
-          ref={carouselRef}
-          className="w-full overflow-x-auto pb-12 px-6 hide-scrollbar cursor-grab active:cursor-grabbing scroll-pl-6"
-          // We removed 'snap-x' classes here to let JS physics handle the motion fluidly
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          ref={wrapperRef}
+          className="w-full overflow-hidden cursor-grab active:cursor-grabbing px-6"
         >
-          <div className="flex gap-4 w-max">
+          {/* MOVING TRACK */}
+          {/* We use 'w-max' to let it grow horizontally based on content */}
+          <div ref={trackRef} className="flex gap-5 w-max will-change-transform">
             {displayedItems.map((item) => (
               <div 
                 key={item.id}
-                className="experience-card w-[75vw] max-w-[280px] flex flex-col gap-2 bg-white group select-none shrink-0"
+                className="experience-card w-[75vw] md:w-[25vw] max-w-[320px] flex flex-col gap-4 bg-white group select-none shrink-0"
               >
                 {/* Image Card */}
-                <div className="w-full aspect-square overflow-hidden rounded-[20px] relative">
+                <div className="w-full aspect-square overflow-hidden rounded-[2px] relative shadow-sm">
                   <img 
                     src={item.image} 
                     alt={item.title} 
                     draggable={false}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  {/* Reviews Tag Removed */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
                 </div>
 
                 {/* Content */}
-                {/* Increased gap and margins for better breathing room */}
-                <div className="flex flex-col px-1 mt-3">
-                  <h3 className="text-[#1a1a1a] font-trenda text-[16px] leading-[1.3] font-normal line-clamp-2">
+                <div className="flex flex-col px-1">
+                  <h3 className="text-[#1a1a1a] font-trenda text-[18px] leading-[1.3] font-normal line-clamp-2">
                     {item.title}
                   </h3>
                   
-                  <p className="text-[#A69F97] font-trenda text-[11px] leading-[1.6] font-light line-clamp-4 mt-2">
+                  <p className="text-[#A69F97] font-trenda text-[11px] leading-[1.6] font-light line-clamp-3 mt-2 min-h-[3.2em]">
                     {item.desc}
                   </p>
 
                   {/* Meta Info */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 border-t border-black/5 mt-4">
-                    <div className="flex items-center gap-1.5 text-[#1a1a1a]">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 py-4 border-t border-black/5 mt-4">
+                    <div className="flex items-center gap-1.5 text-[#1a1a1a]/80">
                       <Clock size={11} strokeWidth={1.5} />
                       <span className="text-[10px] font-trenda font-medium uppercase tracking-wide">{item.duration}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[#1a1a1a]">
+                    <div className="flex items-center gap-1.5 text-[#1a1a1a]/80">
                       <MapPin size={11} strokeWidth={1.5} />
                       <span className="text-[10px] font-trenda font-medium uppercase tracking-wide">{item.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[#1a1a1a]">
-                      <Ticket size={11} strokeWidth={1.5} />
-                      <span className="text-[10px] font-trenda font-medium uppercase tracking-wide">{item.price}</span>
                     </div>
                   </div>
 
                   {/* Single CTA Pill */}
-                  <button className="flex items-center gap-2 mt-2 group w-fit">
-                     <span className="text-[10px] font-trenda font-bold uppercase tracking-wider text-[#1a1a1a] group-hover:opacity-70 transition-opacity">
-                       Discover
-                     </span>
-                     <div className="w-4 h-4 rounded-full border border-[#1a1a1a]/30 flex items-center justify-center group-hover:border-[#990000] group-hover:bg-[#990000] transition-all duration-300">
-                        <ChevronRight size={10} className="text-[#1a1a1a] group-hover:text-white transition-colors" strokeWidth={2.5} />
-                     </div>
-                  </button>
+                  <div className="mt-2">
+                      <button className="flex items-center gap-2 group/btn w-fit">
+                        <span className="text-[10px] font-trenda font-bold uppercase tracking-wider text-[#1a1a1a] group-hover/btn:text-[#C00115] transition-colors">
+                        Discover
+                        </span>
+                        <div className="w-5 h-5 rounded-full border border-[#1a1a1a]/20 flex items-center justify-center group-hover/btn:border-[#C00115] group-hover/btn:bg-[#C00115] transition-all duration-300">
+                            <ChevronRight size={10} className="text-[#1a1a1a] group-hover/btn:text-white transition-colors" strokeWidth={2.5} />
+                        </div>
+                    </button>
+                  </div>
 
                 </div>
               </div>
             ))}
-            {/* Spacer for right side padding */}
-            <div className="w-2 shrink-0" />
+            {/* Right padding spacer inside the track to ensure last item isn't flush with edge */}
+            <div className="w-1 shrink-0" />
           </div>
         </div>
 
