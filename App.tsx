@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import StickyHeader from './components/StickyHeader';
 import PinnedHero from './components/PinnedHero';
 import BottleSwitcher from './components/BottleSwitcher';
 import F1Story from './components/F1Story';
@@ -39,23 +40,29 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    // Outer container: Removed 'bg-white', now transparent to let body bg (#990000) show for top overscroll
     <div ref={containerRef} className="relative w-full min-h-screen md:bg-[#f0f0f0] md:flex md:justify-center">
-      {/* Inner container: Changed bg-white to bg-[#C00115] to prevent white gaps during scroll transitions */}
-      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-[#C00115]">
-        <main>
-          <PinnedHero theme={headerTheme} />
-          
-          {/* Changed z-10 wrapper bg-white to bg-[#C00115] for seamless connection between Hero and BottleSwitcher */}
-          <div className="relative z-10 bg-[#C00115]">
-            <BottleSwitcher onThemeChange={setHeaderTheme} />
-            <F1Story />
-            <ExperienceSection />
-            <CraftsmanshipCarousel />
-          </div>
-        </main>
+      {/* 
+        Container Frame
+        Changed bg color to #000 temporarily to blend with hero start
+      */}
+      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-[#000000]">
+        
+        {/* FIXED HEADER LAYER */}
+        <StickyHeader theme={headerTheme} />
 
-        <Footer />
+        <main>
+          {/* SCROLLABLE CONTENT LAYER */}
+          <PinnedHero />
+          
+          <div className="relative z-10 bg-[#C00115]">
+             <BottleSwitcher onThemeChange={setHeaderTheme} />
+             <F1Story />
+             <ExperienceSection />
+             <CraftsmanshipCarousel />
+          </div>
+          
+          <Footer />
+        </main>
       </div>
     </div>
   );

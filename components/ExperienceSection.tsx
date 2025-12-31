@@ -1,8 +1,8 @@
 
-import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Clock, MapPin, Ticket, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, ChevronRight } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -100,9 +100,13 @@ const ExperienceSection: React.FC = () => {
   const [displayedItems, setDisplayedItems] = useState(EXPERIENCES);
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // Drag State for Desktop Mouse Interaction
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
 
   // --- ENTRANCE ANIMATION ---
   useEffect(() => {
@@ -126,10 +130,10 @@ const ExperienceSection: React.FC = () => {
   // --- FILTER ANIMATION ---
   const handleFilter = (category: string) => {
     if (category === activeCategory) return;
-    if (!trackRef.current) return;
+    if (!scrollContainerRef.current) return;
 
     // Fade Out
-    gsap.to(trackRef.current, {
+    gsap.to(scrollContainerRef.current, {
       opacity: 0,
       y: 10,
       duration: 0.2,
@@ -142,11 +146,13 @@ const ExperienceSection: React.FC = () => {
           : EXPERIENCES.filter(item => item.category === category);
         setDisplayedItems(filtered);
         
-        // Reset Position & Fade In
-        // We use a simplified reset here; actual X reset happens in the LayoutEffect
-        gsap.set(trackRef.current, { x: 0 }); 
+        // Reset Scroll Position
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollLeft = 0;
+        }
         
-        gsap.to(trackRef.current, {
+        // Fade In
+        gsap.to(scrollContainerRef.current, {
            opacity: 1,
            y: 0,
            duration: 0.4,
@@ -156,200 +162,73 @@ const ExperienceSection: React.FC = () => {
     });
   };
 
-  // --- GSAP DRAGGABLE IMPLEMENTATION ---
+  // --- MOUSE DRAG HANDLERS (Desktop "Swipe") ---
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const track = trackRef.current;
-    if (!wrapper || !track) return;
+    const slider = scrollContainerRef.current;
+    if (!slider) return;
 
-    // Physics Constants
-    const FRICTION = 0.96;
-    const BOUNCE_EASE = "back.out(0.8)";
-    const DRAG_RESISTANCE = 0.4;
-
-    // State Variables
-    let currentX = 0;
-    let isPressed = false;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let lastX = 0;
-    let velocity = 0;
-    let isLocked: 'horizontal' | 'vertical' | null = null;
-    let rafId: number;
-
-    const getBounds = () => {
-        const wrapperW = wrapper.clientWidth;
-        const trackW = track.scrollWidth;
-        const min = Math.min(0, wrapperW - trackW);
-        return { min, max: 0 };
+    const onMouseDown = (e: MouseEvent) => {
+      isDown.current = true;
+      slider.style.cursor = 'grabbing';
+      // Disable snap while dragging for smoothness
+      slider.style.scrollSnapType = 'none'; 
+      startX.current = e.pageX - slider.offsetLeft;
+      scrollLeft.current = slider.scrollLeft;
     };
-
-    const updatePosition = () => {
-        gsap.set(track, { x: currentX });
-    };
-
-    const onDown = (e: MouseEvent | TouchEvent) => {
-        isPressed = true;
-        isDragging = false;
-        isLocked = null;
-        
-        const cx = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
-        const cy = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
-        
-        startX = cx;
-        startY = cy;
-        lastX = cx;
-        velocity = 0;
-
-        // Kill any ongoing inertia tweens
-        gsap.killTweensOf(track);
-        // Sync currentX with actual transform in case we interrupted a tween
-        currentX = gsap.getProperty(track, "x") as number;
-
-        wrapper.style.cursor = 'grabbing';
-    };
-
-    const onMove = (e: MouseEvent | TouchEvent) => {
-        if (!isPressed) return;
-        
-        const cx = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
-        const cy = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
-        
-        // DIRECTION LOCKING FOR TOUCH
-        if (isLocked === null && 'touches' in e) {
-            const dx = Math.abs(cx - startX);
-            const dy = Math.abs(cy - startY);
-            if (dx > 5 || dy > 5) {
-                if (dx > dy) {
-                    isLocked = 'horizontal';
-                } else {
-                    isLocked = 'vertical';
-                    // If vertical, release control
-                    isPressed = false;
-                    return;
-                }
-            }
-        }
-        
-        // If locked vertical, do nothing (let native scroll happen)
-        if (isLocked === 'vertical') return;
-
-        // If locked horizontal (or mouse), prevent default to stop page scroll
-        if (isLocked === 'horizontal' && e.cancelable) {
-            e.preventDefault();
-        }
-
-        const delta = cx - lastX;
-        lastX = cx;
-        velocity = delta;
-
-        if (Math.abs(cx - startX) > 5) isDragging = true;
-
-        // Apply Drag
-        currentX += delta;
-
-        // Resistance/Rubber-banding at edges
-        const { min, max } = getBounds();
-        if (currentX > max) {
-            // Pulling past start
-            const overflow = currentX - max;
-            currentX = max + overflow * DRAG_RESISTANCE; 
-        } else if (currentX < min) {
-            // Pulling past end
-            const overflow = currentX - min;
-            currentX = min + overflow * DRAG_RESISTANCE;
-        }
-
-        updatePosition();
-    };
-
-    const onUp = () => {
-        if (!isPressed) return;
-        isPressed = false;
-        wrapper.style.cursor = 'grab';
-
-        const { min, max } = getBounds();
-
-        // 1. OUT OF BOUNDS SNAP BACK
-        if (currentX > max) {
-            gsap.to(track, { x: max, duration: 0.6, ease: BOUNCE_EASE });
-            return;
-        }
-        if (currentX < min) {
-            gsap.to(track, { x: min, duration: 0.6, ease: BOUNCE_EASE });
-            return;
-        }
-
-        // 2. INERTIA THROW
-        // Calculate destination based on velocity
-        // The multiplier determines how "slippery" it feels.
-        const inertiaDest = currentX + (velocity * 16); 
-
-        let dest = inertiaDest;
-        let duration = 0.8;
-        let ease = "power3.out";
-
-        // Check if destination overshoots bounds
-        if (dest > max) {
-            dest = max;
-            ease = "back.out(0.6)"; // Subtle soft landing
-        } else if (dest < min) {
-            dest = min;
-            ease = "back.out(0.6)";
-        }
-
-        gsap.to(track, { 
-            x: dest, 
-            duration: duration, 
-            ease: ease 
-        });
-    };
-
-    const onClick = (e: Event) => {
-        if (isDragging) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    };
-
-    // Attach Events
-    wrapper.addEventListener('mousedown', onDown);
-    wrapper.addEventListener('touchstart', onDown, { passive: false });
     
-    window.addEventListener('mousemove', onMove, { passive: false });
-    window.addEventListener('touchmove', onMove, { passive: false });
+    const onMouseLeave = () => {
+      isDown.current = false;
+      slider.style.cursor = 'grab';
+      slider.style.scrollSnapType = 'x mandatory'; // Re-enable snap
+    };
     
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchend', onUp);
+    const onMouseUp = () => {
+      isDown.current = false;
+      slider.style.cursor = 'grab';
+      slider.style.scrollSnapType = 'x mandatory';
+    };
     
-    wrapper.addEventListener('click', onClick, true); // Capture phase to block clicks
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown.current) return;
+      e.preventDefault(); // Stop text selection
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX.current) * 1.5; // Scroll-fast multiplier
+      slider.scrollLeft = scrollLeft.current - walk;
+    };
+
+    slider.addEventListener('mousedown', onMouseDown);
+    slider.addEventListener('mouseleave', onMouseLeave);
+    slider.addEventListener('mouseup', onMouseUp);
+    slider.addEventListener('mousemove', onMouseMove);
 
     return () => {
-        wrapper.removeEventListener('mousedown', onDown);
-        wrapper.removeEventListener('touchstart', onDown);
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('touchmove', onMove);
-        window.removeEventListener('mouseup', onUp);
-        window.removeEventListener('touchend', onUp);
-        wrapper.removeEventListener('click', onClick, true);
+      slider.removeEventListener('mousedown', onMouseDown);
+      slider.removeEventListener('mouseleave', onMouseLeave);
+      slider.removeEventListener('mouseup', onMouseUp);
+      slider.removeEventListener('mousemove', onMouseMove);
     };
-  }, [displayedItems]);
+  }, []);
 
   return (
-    <section id="experience-section" ref={containerRef} className="reveal-section py-24 bg-white overflow-hidden">
+    // Tagged 'black' so the main white area enforces a Black Logo
+    <section 
+      id="experience-section" 
+      data-header-theme="black"
+      ref={containerRef} 
+      className="reveal-section pt-32 pb-10 bg-white overflow-hidden"
+    >
       <div className="w-full flex flex-col items-center">
         
         {/* HEADER */}
         <h2 
           ref={titleRef}
-          className="font-handwritten text-[32px] md:text-[40px] text-[#1a1a1a] mb-12 relative z-0 select-none leading-[1.1] text-center"
+          className="font-handwritten text-[32px] md:text-[40px] text-[#1a1a1a] mb-20 relative z-0 select-none leading-[1.1] text-center"
         >
           Our<br/>Experiences
         </h2>
 
         {/* FILTERS */}
-        <div className="flex flex-wrap justify-center gap-6 mb-16 px-6">
+        <div className="flex flex-wrap justify-center gap-6 mb-8 px-6">
           {CATEGORIES.map((cat) => (
             <button 
               key={cat}
@@ -369,19 +248,33 @@ const ExperienceSection: React.FC = () => {
 
         {/* CAROUSEL WRAPPER */}
         <div 
-          ref={wrapperRef}
-          className="w-full overflow-hidden cursor-grab active:cursor-grabbing px-6"
+          ref={scrollContainerRef}
+          className="w-full flex gap-5 overflow-x-auto snap-x snap-mandatory px-6 pb-8 hide-scrollbar scroll-smooth cursor-grab"
+          style={{ 
+             touchAction: 'pan-y', // Allow vertical page scroll
+             scrollbarWidth: 'none', 
+             msOverflowStyle: 'none',
+             WebkitOverflowScrolling: 'touch'
+          }}
         >
-          {/* MOVING TRACK */}
-          {/* We use 'w-max' to let it grow horizontally based on content */}
-          <div ref={trackRef} className="flex gap-5 w-max will-change-transform">
-            {displayedItems.map((item) => (
+          {/* Hide Scrollbar */}
+          <style>{`
+             .hide-scrollbar::-webkit-scrollbar { display: none; }
+          `}</style>
+
+          {displayedItems.map((item) => (
               <div 
                 key={item.id}
-                className="experience-card w-[75vw] md:w-[25vw] max-w-[320px] flex flex-col gap-4 bg-white group select-none shrink-0"
+                className="experience-card w-[75vw] md:w-[25vw] max-w-[320px] flex flex-col gap-4 bg-white group select-none shrink-0 snap-center"
               >
-                {/* Image Card */}
-                <div className="w-full aspect-square overflow-hidden rounded-[2px] relative shadow-sm">
+                {/* 
+                   Image Card Container 
+                   Tagged 'white' so the logo turns WHITE when overlapping this dark image
+                */}
+                <div 
+                    data-header-theme="white"
+                    className="w-full aspect-square overflow-hidden rounded-[2px] relative shadow-sm"
+                >
                   <img 
                     src={item.image} 
                     alt={item.title} 
@@ -419,18 +312,18 @@ const ExperienceSection: React.FC = () => {
                         <span className="text-[10px] font-trenda font-bold uppercase tracking-wider text-[#1a1a1a] group-hover/btn:text-[#C00115] transition-colors">
                         Discover
                         </span>
-                        <div className="w-5 h-5 rounded-full border border-[#1a1a1a]/20 flex items-center justify-center group-hover/btn:border-[#C00115] group-hover/btn:bg-[#C00115] transition-all duration-300">
-                            <ChevronRight size={10} className="text-[#1a1a1a] group-hover/btn:text-white transition-colors" strokeWidth={2.5} />
+                        <div className="w-5 h-5 rounded-full border border-[#1a1a1a]/20 flex items-center justify-center group-hover:border-white group-hover:bg-[#C00115] transition-all duration-300">
+                            <ChevronRight size={10} className="text-[#1a1a1a] group-hover:text-white transition-colors" strokeWidth={2.5} />
                         </div>
                     </button>
                   </div>
 
                 </div>
               </div>
-            ))}
-            {/* Right padding spacer inside the track to ensure last item isn't flush with edge */}
-            <div className="w-1 shrink-0" />
-          </div>
+          ))}
+          
+           {/* Spacer to allow last item to snap fully without hitting edge */}
+           <div className="w-1 shrink-0" />
         </div>
 
       </div>

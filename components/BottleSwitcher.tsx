@@ -11,7 +11,7 @@ const BOTTLES = [
   },
   {
     id: 'white',
-    title: 'Moët IMPÉRIALE\nBrut Classic',
+    title: 'Moët Ice Imperial',
     textColor: '#1a1a1a', // Black text for White Bottle (End)
     theme: 'dark' as const 
   }
@@ -236,9 +236,9 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
                 onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-3 px-6 py-3 rounded-[4px] backdrop-blur-2xl transition-all duration-300 active:scale-95 shrink-0 group"
                 style={{ 
-                  backgroundColor: index === 1 ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.10)',
+                  backgroundColor: index === 1 ? 'transparent' : 'rgba(255, 255, 255, 0.10)',
                   color: currentBottle.textColor,
-                  border: `1px solid ${index === 1 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'}`
+                  border: `1px solid ${index === 1 ? '#1a1a1a' : 'rgba(255,255,255,0.2)'}`
                 }}
               >
                   <span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">

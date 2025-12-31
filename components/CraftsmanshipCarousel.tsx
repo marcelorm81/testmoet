@@ -11,137 +11,243 @@ const SLIDES = [
     id: 1,
     title: "Our Commitment\nto Tomorrow",
     desc: "At Moët & Chandon, we protect the nature that inspires us, cultivating our vineyards with respect for ecosystems and future generations.",
-    img: "https://github.com/marcelorm81/assets/blob/202a42dcfc9764f71f3ff20d1a796ef2038558a9/IMG_4245.jpg?raw=true"
+    src: "https://github.com/marcelorm81/assets/blob/202a42dcfc9764f71f3ff20d1a796ef2038558a9/IMG_4245.jpg?raw=true",
+    type: 'image'
   },
   {
     id: 2,
     title: "Our Unique\nSavoir-Faire",
     desc: "Generations of expertise and meticulous attention to detail come together to create champagnes of incomparable quality and elegance.",
-    img: "https://raw.githubusercontent.com/marcelorm81/assets/refs/heads/main/Galerie-Imperiale_Copyright-James-Bort-for-Moet-Chandon-(1).avif"
+    src: "https://github.com/marcelorm81/assets/blob/98484cc8e7006134140ea52530d1568d9bd997a0/unique-savoir-faire.mp4?raw=true",
+    type: 'video'
   },
   {
     id: 3,
     title: "Discover our\nvineyards",
     desc: "Our vast vineyards across Champagne give us unparalleled diversity of terroirs and grapes, shaping the signature style of Moët & Chandon.",
-    img: "https://github.com/marcelorm81/assets/blob/202a42dcfc9764f71f3ff20d1a796ef2038558a9/IMG_4211.jpg?raw=true"
+    src: "https://github.com/marcelorm81/assets/blob/202a42dcfc9764f71f3ff20d1a796ef2038558a9/IMG_4211.jpg?raw=true",
+    type: 'image'
   }
 ];
 
 const CraftsmanshipCarousel: React.FC = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const slidesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const bgRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Drag State for Desktop Mouse Interaction
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const totalSlides = SLIDES.length;
-      
-      // Horizontal Scroll Animation
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          pin: true,
-          scrub: 1, // Smooth scrubbing
-          snap: {
-            snapTo: 1 / (totalSlides - 1),
-            duration: { min: 0.3, max: 0.8 }, // Slightly longer for elegance
-            delay: 0, // Instant snap start
-            ease: "power2.inOut"
-          },
-          end: () => "+=" + (sectionRef.current?.offsetWidth || window.innerWidth) * 2.5, // Slower scroll
-        }
-      });
+    const scroller = scrollContainerRef.current;
+    if (!scroller) return;
 
-      // 1. Container Slide
-      tl.to(containerRef.current, {
-        xPercent: -100 * ((totalSlides - 1) / totalSlides),
-        ease: "none",
-      });
+    // --- VISUAL SYNC (Crossfade Backgrounds) ---
+    const updateVisuals = () => {
+        const currentScroll = scroller.scrollLeft;
+        const width = scroller.offsetWidth;
+        
+        // Progress: 0.0 -> 1.0 -> 2.0
+        const progress = currentScroll / width;
 
-      // 2. Parallax Effect for Images (Elegant "Switching" Transition)
-      // As container moves LEFT, images move slightly RIGHT to create depth
-      slidesRef.current.forEach((slide, i) => {
-        if (!slide) return;
-        const img = slide.querySelector('img');
-        if (img) {
-          // Subtle parallax: Move image 15% to the right over the course of the scroll
-          gsap.fromTo(img, 
-            { xPercent: -5 }, // Start slightly left
-            { 
-              xPercent: 5,   // End slightly right
-              ease: "none",
-              scrollTrigger: {
-                trigger: sectionRef.current,
-                scrub: 1,
-                start: 'top top',
-                end: () => "+=" + (sectionRef.current?.offsetWidth || window.innerWidth) * 2.5,
-              }
+        // 1. Update Backgrounds
+        SLIDES.forEach((_, i) => {
+            const bg = bgRefs.current[i];
+            if (!bg) return;
+            
+            // Calculate distance from center of viewport
+            const dist = Math.abs(progress - i);
+            
+            // Crossfade Logic:
+            // If dist is 0 (centered), opacity 1.
+            // If dist is 1 (offscreen), opacity 0.
+            let opacity = 1 - dist;
+            if (opacity < 0) opacity = 0;
+            if (opacity > 1) opacity = 1;
+
+            // Z-Index: The most visible slide stays on top
+            const zIndex = opacity > 0.5 ? 2 : 1;
+            
+            gsap.set(bg, { opacity, zIndex });
+        });
+
+        // 2. Update Dots
+        dotRefs.current.forEach((dot, i) => {
+            if (!dot) return;
+            const dist = Math.abs(progress - i);
+            
+            let w = 6;
+            let alpha = 0.3;
+            
+            // Smooth transition for dots
+            if (dist < 1) {
+                w = 6 + (1 - dist) * 18; 
+                alpha = 0.3 + (1 - dist) * 0.7;
             }
-          );
-        }
-      });
+            
+            gsap.set(dot, { 
+                width: w, 
+                backgroundColor: `rgba(255, 251, 247, ${alpha})` 
+            });
+        });
+    };
 
-    });
+    // --- MOUSE DRAG HANDLERS (Desktop "Swipe") ---
+    // We strictly use this for Mouse events. Touch events are handled natively by CSS 'touch-action: pan-y'.
     
-    return () => ctx.revert();
+    const onMouseDown = (e: MouseEvent) => {
+        isDown.current = true;
+        scroller.style.cursor = 'grabbing';
+        scroller.style.scrollSnapType = 'none'; // Disable snap while dragging for smoothness
+        startX.current = e.pageX - scroller.offsetLeft;
+        scrollLeft.current = scroller.scrollLeft;
+    };
+
+    const onMouseLeave = () => {
+        if (!isDown.current) return;
+        isDown.current = false;
+        scroller.style.cursor = 'grab';
+        scroller.style.scrollSnapType = 'x mandatory'; // Re-enable snap
+    };
+
+    const onMouseUp = () => {
+        if (!isDown.current) return;
+        isDown.current = false;
+        scroller.style.cursor = 'grab';
+        scroller.style.scrollSnapType = 'x mandatory';
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+        if (!isDown.current) return;
+        e.preventDefault(); // Prevent text selection
+        const x = e.pageX - scroller.offsetLeft;
+        const walk = (x - startX.current) * 1.5; // Scroll-fast multiplier
+        scroller.scrollLeft = scrollLeft.current - walk;
+    };
+
+    // Attach Listeners
+    scroller.addEventListener('scroll', updateVisuals, { passive: true });
+    
+    // Mouse Drag Listeners
+    scroller.addEventListener('mousedown', onMouseDown);
+    scroller.addEventListener('mouseleave', onMouseLeave);
+    scroller.addEventListener('mouseup', onMouseUp);
+    scroller.addEventListener('mousemove', onMouseMove);
+
+    // Initial Draw
+    updateVisuals();
+
+    return () => {
+        scroller.removeEventListener('scroll', updateVisuals);
+        scroller.removeEventListener('mousedown', onMouseDown);
+        scroller.removeEventListener('mouseleave', onMouseLeave);
+        scroller.removeEventListener('mouseup', onMouseUp);
+        scroller.removeEventListener('mousemove', onMouseMove);
+    };
   }, []);
 
   return (
-    <section id="craftsmanship-section" ref={sectionRef} className="relative w-full h-[100dvh] overflow-hidden bg-black z-20">
-      <div 
-        ref={containerRef} 
-        className="flex h-full will-change-transform"
-        style={{ width: `${SLIDES.length * 100}%` }}
-      >
+    <section 
+      data-header-theme="white" 
+      className="relative w-full h-[100dvh] overflow-hidden bg-black z-20"
+    >
+      
+      {/* 1. BACKGROUND LAYER (Fixed/Absolute) */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
         {SLIDES.map((slide, i) => (
           <div 
-            key={slide.id} 
-            ref={el => { slidesRef.current[i] = el; }}
-            className="relative h-full flex-shrink-0 overflow-hidden"
-            style={{ width: `${100 / SLIDES.length}%` }}
+            key={`bg-${slide.id}`}
+            ref={el => { bgRefs.current[i] = el; }}
+            className="absolute inset-0 w-full h-full will-change-opacity bg-black"
           >
-            {/* Image Layer - slightly larger for parallax */}
-            <div className="absolute inset-0 w-[110%] h-full -left-[5%]">
-               <img 
-                 src={slide.img} 
-                 alt={slide.title.replace('\n', ' ')} 
-                 className="w-full h-full object-cover"
+             {slide.type === 'video' ? (
+               <video 
+                 src={slide.src} 
+                 autoPlay 
+                 muted 
+                 loop 
+                 playsInline 
+                 className="w-full h-full object-cover opacity-80" 
                />
-               {/* 
-                  Gradient Overlay: Updated to be stronger (black -> black/40 -> transparent) 
-                  to fully protect text readability.
-               */}
-               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            </div>
-
-            {/* Content Layer */}
-            <div className="absolute inset-0 flex flex-col justify-end px-6 pb-20 md:pb-32">
-                <div className="w-full max-w-[85vw] md:max-w-[320px]">
-                   {/* Decoration Line */}
-                   <div className="w-[40px] h-[2px] bg-[#FFFBF7] mb-6" />
-                   
-                   {/* Title */}
-                   <h2 className="text-[#FFFBF7] font-trenda text-[22px] leading-[1.2] font-normal mb-5 whitespace-pre-line tracking-tight">
-                     {slide.title}
-                   </h2>
-                   
-                   <p className="text-[#FFFBF7]/90 font-trenda text-[10px] leading-[1.6] font-light mb-8 pr-4">
-                     {slide.desc}
-                   </p>
-
-                   <button className="group flex items-center gap-3 text-[#FFFBF7] hover:opacity-80 transition-opacity">
-                     <span className="font-trenda text-[9px] font-bold tracking-[0.2em] uppercase">
-                       Explore
-                     </span>
-                     <div className="w-5 h-5 rounded-full border border-white/30 flex items-center justify-center group-hover:border-white/60 transition-colors">
-                        <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                     </div>
-                   </button>
-                </div>
-            </div>
+             ) : (
+               <img 
+                 src={slide.src} 
+                 alt="" 
+                 className="w-full h-full object-cover opacity-80"
+               />
+             )}
+             {/* Gradient Overlay */}
+             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
           </div>
         ))}
       </div>
+
+      {/* 2. SCROLL CONTAINER */}
+      {/* 
+          - touch-action: pan-y -> CRITICAL. Allows vertical scroll (page) to pass through, 
+            but captures horizontal scroll for the carousel.
+          - overflow-x-auto -> Native scroll.
+          - snap-x snap-mandatory -> Clean alignment.
+      */}
+      <div 
+        ref={scrollContainerRef}
+        className="absolute inset-0 w-full h-full overflow-x-auto overflow-y-hidden flex snap-x snap-mandatory z-20 cursor-grab active:cursor-grabbing hide-scrollbar"
+        style={{ 
+            touchAction: 'pan-y', // Resolves the "conflict" on mobile
+            WebkitOverflowScrolling: 'touch', // iOS Momentum
+        }}
+      >
+         <style>{`
+            .hide-scrollbar::-webkit-scrollbar { display: none; }
+         `}</style>
+
+         {SLIDES.map((slide) => (
+           <div 
+             key={`text-${slide.id}`} 
+             className="relative w-full h-full flex-shrink-0 snap-center flex flex-col justify-end px-8 pb-24 md:pb-32"
+           >
+              <div className="w-full max-w-[85vw] md:max-w-[320px] pointer-events-none select-none">
+                 <div className="w-[40px] h-[2px] bg-[#FFFBF7] mb-6" />
+                 
+                 <h2 className="text-[#FFFBF7] font-trenda text-[22px] leading-[1.2] font-normal mb-5 whitespace-pre-line tracking-tight drop-shadow-lg">
+                   {slide.title}
+                 </h2>
+                 
+                 <p className="text-[#FFFBF7]/90 font-trenda text-[10px] leading-[1.6] font-light mb-8 pr-4 drop-shadow-md">
+                   {slide.desc}
+                 </p>
+
+                 <button className="group flex items-center gap-3 text-[#FFFBF7] hover:opacity-80 transition-opacity pointer-events-auto">
+                   <span className="font-trenda text-[9px] font-bold tracking-[0.2em] uppercase">
+                     Explore
+                   </span>
+                   <div className="w-5 h-5 rounded-full border border-white/30 flex items-center justify-center group-hover:border-white/60 transition-colors">
+                      <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                   </div>
+                 </button>
+              </div>
+           </div>
+         ))}
+      </div>
+
+      {/* 3. INDICATORS */}
+      <div className="absolute bottom-10 left-0 right-0 z-30 flex justify-center items-center gap-3 pointer-events-auto">
+        {SLIDES.map((_, i) => (
+          <div 
+            key={`dot-${i}`}
+            ref={el => { dotRefs.current[i] = el; }}
+            className="h-[4px] rounded-full"
+            style={{ 
+                width: '6px', 
+                backgroundColor: 'rgba(255, 251, 247, 0.3)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.4)' 
+            }}
+          />
+        ))}
+      </div>
+
     </section>
   );
 };
