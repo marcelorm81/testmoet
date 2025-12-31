@@ -270,10 +270,13 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
 
     const tl = gsap.timeline({ scrollTrigger: { trigger: pinRef.current, start: 'top top', end: '+=100%', pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true, } });
     
-    // Animation now starts from 0% inset (full screen) to the pill shape.
-    tl.to(maskRef.current, { clipPath: 'inset(15% 12% 5% 12% round 1000px)', duration: 0.6, ease: 'power2.inOut' }, 0);
+    // Animation now starts from 0% inset (full screen).
+    // UPDATED: Top inset set to 0% to ensures the image remains visible behind the status bar area (immersive).
+    // Only the sides and bottom contract, keeping the "notch" area seamless with the image.
+    tl.to(maskRef.current, { clipPath: 'inset(0% 12% 5% 12% round 0px 0px 60px 60px)', duration: 0.6, ease: 'power2.inOut' }, 0);
     
-    // Fade background from Black to Red as we scroll down and form the pill
+    // Fade background from Black to Red as we scroll down to fill the sides/bottom
+    // With top inset 0, the red only appears on sides and bottom, avoiding the "Red Bar" issue at the top.
     tl.to(pinRef.current, { backgroundColor: '#990000', duration: 0.3 }, 0);
 
     tl.to(svgRef.current, { top: finalLogoTop, scale: finalScale, duration: 0.8, ease: 'power2.inOut' }, 0);
