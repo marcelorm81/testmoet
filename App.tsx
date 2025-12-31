@@ -41,18 +41,13 @@ const App: React.FC = () => {
   return (
     // Outer container: Removed 'bg-white', now transparent to let body bg (#990000) show for top overscroll
     <div ref={containerRef} className="relative w-full min-h-screen md:bg-[#f0f0f0] md:flex md:justify-center">
-      {/* Inner container: Removed 'bg-white' from top level, applied to specific content areas instead if needed, 
-          but usually the components have their own backgrounds. 
-          Actually, we keep bg-white here but make it start AFTER the hero? 
-          No, the Hero is fixed/pinned. 
-          Best strategy: Keep bg-white but rely on 'viewport-fit=cover' + body bg #990000.
-          If we make this transparent, the red body will show.
-      */}
-      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-white">
+      {/* Inner container: Changed bg-white to bg-[#C00115] to prevent white gaps during scroll transitions */}
+      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-[#C00115]">
         <main>
           <PinnedHero theme={headerTheme} />
           
-          <div className="relative z-10 bg-white">
+          {/* Changed z-10 wrapper bg-white to bg-[#C00115] for seamless connection between Hero and BottleSwitcher */}
+          <div className="relative z-10 bg-[#C00115]">
             <BottleSwitcher onThemeChange={setHeaderTheme} />
             <F1Story />
             <ExperienceSection />

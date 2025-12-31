@@ -164,7 +164,7 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
 
   return (
     <section 
-      className="relative w-full min-h-screen flex flex-col items-center justify-start py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none"
+      className="relative w-full min-h-screen flex flex-col items-center justify-start py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none bg-[#C00115]"
       onMouseDown={handleDragStart}
       onTouchStart={handleDragStart}
     >
