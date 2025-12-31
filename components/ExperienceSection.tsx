@@ -251,7 +251,7 @@ const ExperienceSection: React.FC = () => {
           ref={scrollContainerRef}
           className="w-full flex gap-5 overflow-x-auto snap-x snap-mandatory px-6 pb-8 hide-scrollbar scroll-smooth cursor-grab"
           style={{ 
-             touchAction: 'pan-x pan-y', // Allow native scrolling in both directions
+             touchAction: 'pan-y', // Explicitly allow vertical panning (browser handles horizontal overflow)
              scrollbarWidth: 'none', 
              msOverflowStyle: 'none',
              WebkitOverflowScrolling: 'touch'

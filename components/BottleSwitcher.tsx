@@ -36,6 +36,9 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
     displayTime: MIN_TIME,
     isDragging: false,
     startX: 0,
+    startY: 0, // Track vertical for locking
+    isLocked: false, // Have we determined direction yet?
+    direction: null as 'horizontal' | 'vertical' | null, // 'horizontal' or 'vertical'
     startTimeAtDrag: MIN_TIME,
   });
 
@@ -83,22 +86,42 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
     const s = state.current;
     if (!s.isDragging) return;
 
-    // Prevent default scrolling on touch devices while dragging
-    if (e.cancelable) e.preventDefault();
-
     const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+    
     const deltaX = clientX - s.startX;
-    
-    // MAPPING: 200px = 2 seconds (0.01s per pixel)
-    // INVERSE DRAG: Drag Left (negative delta) -> Advance Time (positive add).
-    // Formula: newTime = start - (delta * 0.01)
-    let newTime = s.startTimeAtDrag - (deltaX * 0.01);
-    
-    // Clamp constraints
-    if (newTime < MIN_TIME) newTime = MIN_TIME;
-    if (newTime > MAX_TIME) newTime = MAX_TIME;
+    const deltaY = clientY - s.startY;
 
-    s.targetTime = newTime;
+    // DIRECTION LOCKING
+    // We wait for a small movement (5px) before deciding if this is a scroll or a drag.
+    if (!s.isLocked) {
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+            s.isLocked = true;
+            // If horizontal movement is greater, we claim it.
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                s.direction = 'horizontal';
+            } else {
+                s.direction = 'vertical';
+            }
+        }
+    }
+
+    // If vertical, we let the browser handle scrolling (return early).
+    if (s.direction === 'vertical') return;
+
+    // If horizontal, prevent default browser behavior (scrolling) and run our logic.
+    if (s.direction === 'horizontal') {
+        if (e.cancelable) e.preventDefault();
+
+        // MAPPING: 200px = 2 seconds (0.01s per pixel)
+        let newTime = s.startTimeAtDrag - (deltaX * 0.01);
+        
+        // Clamp constraints
+        if (newTime < MIN_TIME) newTime = MIN_TIME;
+        if (newTime > MAX_TIME) newTime = MAX_TIME;
+
+        s.targetTime = newTime;
+    }
   }, []);
 
   const handleDragEnd = useCallback(() => {
@@ -106,6 +129,8 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
     if (!s.isDragging) return;
 
     s.isDragging = false;
+    s.isLocked = false;
+    s.direction = null;
 
     // Clean up window listeners
     window.removeEventListener('mousemove', handleDragMove);
@@ -138,9 +163,14 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     const s = state.current;
     s.isDragging = true;
+    s.isLocked = false; // Reset lock
+    s.direction = null;
     
     const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;
+    
     s.startX = clientX;
+    s.startY = clientY;
     s.startTimeAtDrag = s.targetTime;
 
     // Attach to window to handle drag outside the component
@@ -164,7 +194,9 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
 
   return (
     <section 
-      className="relative w-full min-h-screen flex flex-col items-center justify-start py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none bg-[#C00115]"
+      // Changed from touch-none to touch-pan-y to allow vertical scrolling by default
+      className="relative w-full min-h-screen flex flex-col items-center justify-start py-[30px] overflow-hidden cursor-grab active:cursor-grabbing select-none bg-[#C00115]"
+      style={{ touchAction: 'pan-y' }}
       onMouseDown={handleDragStart}
       onTouchStart={handleDragStart}
     >
