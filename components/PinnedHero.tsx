@@ -382,7 +382,7 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
                 </g>
                 <g id="chandon">
                   <path d="M251.694 7.12591H242.847L245.588 9.84976L245.636 30.1003L243.04 32.7107L252.864 32.6945C260.86 32.6783 265.324 27.0279 265.308 19.4968C265.292 11.463 259.466 7.1178 251.694 7.13402V7.12591ZM252.391 31.0245C250.299 31.0245 250.187 30.9272 250.187 30.9272L250.139 8.83642C250.139 8.83642 250.163 8.79589 250.892 8.78778C256.517 8.77157 260.348 12.7844 260.364 19.7318C260.38 26.2983 257.487 31.0245 252.391 31.0245Z" fill="#FFFBF7"/>
-                  <path d="M232.556 7.12591L235.296 9.84976L235.328 24.8634L221.61 7.13402H214.903C214.903 7.13402 217.051 9.14448 218.157 10.3767L218.197 30.1003L215.584 32.7107H222.956L220.344 30.1003L220.304 12.8817L235.641 32.7107H237.444L237.395 9.85787L240.128 7.13402H232.548L232.556 7.12591Z" fill="#FFFBF7"/>
+                  <path d="M232.556 7.12591L235.296 9.84976L235.328 24.8634L221.61 7.13402H214.903C214.903 7.13402 217.051 9.14448 218.157 10.3767L218.197 30.1003L215.584 32.7107H222.956L220.344 30.1003L220.304 12.8817L235.641 32.711H237.444L237.395 9.85787L240.128 7.13402H232.548L232.556 7.12591Z" fill="#FFFBF7"/>
                   <path d="M189.097 7.12591H179.025L181.75 9.84976V18.8239H171.974V9.84976L174.738 7.12591H164.658L167.383 9.84976V30.1328L164.786 32.7026H174.578L171.974 30.1003V20.6074H181.75V30.1246L179.145 32.7026H188.945L186.349 30.1003V9.84976L189.097 7.12591Z" fill="#FFFBF7"/>
                   <path d="M280.123 6.60738C273.721 6.60738 268.537 12.4685 268.537 19.8537C268.537 27.239 273.729 33.2136 280.123 33.2136C286.518 33.2136 291.718 27.2309 291.718 19.8537C291.718 12.4766 286.526 6.60738 280.123 6.60738ZM280.147 31.4788C276.045 31.4788 273.312 26.4769 273.312 19.8862C273.312 13.2954 276.045 8.41517 280.147 8.41517C284.25 8.41517 286.982 13.2954 286.982 19.8862C286.982 26.4769 284.25 31.4788 280.147 31.4788Z" fill="#FFFBF7"/>
                   <path d="M317.992 7.12591H310.412L313.152 9.84996L313.184 24.8634L299.466 7.13402H292.174C292.174 7.13402 294.907 9.14448 296.02 10.3767L296.061 30.1003L293.448 32.7107H300.82L298.208 30.1003L298.168 12.8817L313.505 32.7107H315.307L315.259 9.85787L317.992 7.13402V7.12591Z" fill="#FFFBF7"/>
@@ -400,12 +400,12 @@ const PinnedHero: React.FC<PinnedHeroProps> = ({ theme = 'light' }) => {
       </div>
       <div ref={pinRef} className="relative w-full h-[100dvh] overflow-hidden bg-black">
          <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
-            <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/11f5d903204ff61d8f9039e70bcab5eb9b6bce5f/moet222.png')` }} />
+            <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/f8ea16de177261070786196998039f302b305a26/moet_dance.png')` }} />
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
             <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end pb-[50px] text-white z-10 px-4">
                <div className="text-center max-w-2xl w-full">
-                 <p className="text-[9px] tracking-[0.2em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Holiday Season</p>
-                 <h2 className="text-[24px] font-trenda font-normal leading-[1.2] mb-8 tracking-tight">Celebrate the <br/>Right Way</h2>
+                 <p className="text-[9px] tracking-[0.2em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Moët Experiences</p>
+                 <h2 className="text-[24px] font-trenda font-normal leading-[1.2] mb-8 tracking-tight">Make It a Moment<br/>to Remember</h2>
                  <button className="mx-auto flex items-center space-x-3 bg-white/10 backdrop-blur-2xl px-6 py-3 rounded-[4px] hover:bg-white hover:text-[#990000] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]"><span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">DISCOVER</span><div className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#990000]/20 transition-colors"><ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" /></div></button>
                </div>
             </div>
