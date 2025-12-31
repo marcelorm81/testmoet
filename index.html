@@ -30,10 +30,14 @@
         overscroll-behavior-y: none; /* Helps prevent white bounce on some browsers */
       }
 
+      html {
+        background-color: transparent; /* Transparent for immersive Safari UI */
+      }
+
       body {
         margin: 0;
         padding: 0;
-        background-color: #000000; /* Changed to Black to aid status bar transparency */
+        background-color: transparent; /* Transparent for immersive Safari UI - hero background shows through */
         font-family: var(--trenda-font);
         color: #000;
         -webkit-font-smoothing: antialiased;

@@ -80,7 +80,7 @@ const F1Story: React.FC = () => {
          Editorial Card Layer 
          Positioned absolutely. GSAP controls its Y-axis.
       */}
-      <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-12">
+      <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ paddingBottom: 'max(48px, env(safe-area-inset-bottom, 0px) + 48px)' }}>
          {/* 
             TAGGED: 'black' -> Forces BLACK Logo when over this white card
             Updated: Compact sizing with reduced padding and gap.
