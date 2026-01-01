@@ -214,15 +214,47 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
   useEffect(() => {
     isMenuOpenRef.current = isMenuOpen;
     const tl = gsap.timeline();
+
+    // Calculate dynamic origin based on the first dot's position
+    const getOrigin = () => {
+        if (!menuIconRef.current || !headerContentRef.current) return '90% 5%';
+        try {
+            const firstDot = menuIconRef.current.querySelector('.menu-dot');
+            const target = firstDot || menuIconRef.current;
+            const rect = target.getBoundingClientRect();
+            const containerRect = headerContentRef.current.getBoundingClientRect();
+            const x = rect.left - containerRect.left + (rect.width / 2);
+            const y = rect.top - containerRect.top + (rect.height / 2);
+            return `${x}px ${y}px`;
+        } catch (e) {
+            return '90% 5%';
+        }
+    };
+    const origin = getOrigin();
+
     if (isMenuOpen) {
         setActiveSubmenu(null); setIsNavigatingBack(false);
         gsap.set(menuOverlayRef.current, { visibility: 'visible' });
-        tl.to(menuOverlayRef.current, { clipPath: 'circle(150% at 90% 5%)', duration: 0.8, ease: 'power3.inOut' }, 0);
+        
+        // Expand Animation: Start from 0% at origin and expand to 150%
+        tl.fromTo(menuOverlayRef.current, 
+            { clipPath: `circle(0% at ${origin})` },
+            { clipPath: `circle(150% at ${origin})`, duration: 0.8, ease: 'power3.inOut' }, 
+        0);
+
         if (menuIconRef.current) tl.to(menuIconRef.current.querySelector('.dots-container'), { rotate: 45, gap: '5px', duration: 0.5, ease: 'back.out(1.7)' }, 0.1);
         document.body.style.overflow = 'hidden';
     } else {
         if (menuListRef.current) tl.to(menuListRef.current.children, { opacity: 0, y: -10, duration: 0.2, }, 0);
-        tl.to(menuOverlayRef.current, { clipPath: 'circle(0% at 90% 5%)', duration: 0.8, ease: 'power3.inOut', onComplete: () => { gsap.set(menuOverlayRef.current, { visibility: 'hidden' }); } }, 0.2);
+        
+        // Contract Animation: Shrink back to 0% at origin
+        tl.to(menuOverlayRef.current, { 
+            clipPath: `circle(0% at ${origin})`, 
+            duration: 0.8, 
+            ease: 'power3.inOut', 
+            onComplete: () => { gsap.set(menuOverlayRef.current, { visibility: 'hidden' }); } 
+        }, 0.2);
+        
         if (menuIconRef.current) tl.to(menuIconRef.current.querySelector('.dots-container'), { rotate: 0, gap: '5px', duration: 0.5, ease: 'power2.inOut' }, 0);
         document.body.style.overflow = '';
     }
@@ -240,7 +272,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
   const handleSubmenuClick = (key: string) => { if (!menuListRef.current) return; gsap.to(menuListRef.current.children, { x: -20, opacity: 0, duration: 0.3, stagger: 0.02, ease: 'power2.in', onComplete: () => { setIsNavigatingBack(false); setActiveSubmenu(key as any); } }); };
   const handleBackClick = () => { if (!menuListRef.current) return; gsap.to(menuListRef.current.children, { x: 20, opacity: 0, duration: 0.3, stagger: 0.02, ease: 'power2.in', onComplete: () => { setIsNavigatingBack(true); setActiveSubmenu(null); } }); };
   
-  // Carousel logic
+  // Carousel logic (unchanged)
   useEffect(() => {
     if (activeSubmenu !== 'champagnes' || !carouselContainerRef.current) return;
     const container = carouselContainerRef.current; container.scrollLeft = 0;
@@ -270,8 +302,6 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
       {/* 
          INNER CONSTRAINT WRAPPER:
          Ensures logo respects the desktop max-width (393px equivalent scale) via CSS class.
-         We remove the inline style to allow the class media query to handle full-width on mobile.
-         We override the class shadow since the header floats and shouldn't cast the device frame shadow.
       */}
       <div 
         ref={headerContentRef}
@@ -280,9 +310,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
       >
         
           {/* 
-              1. HEADER GLASS (Z-30)
-              Moved here so it sits BEHIND the menu (Z-40).
-              Position set to 'absolute' to respect the desktop-constraint width.
+             1. GLASS BACKGROUND (Z-30)
+             Moved behind menu to prevent white glitch.
+             Position: Absolute within wrapper.
           */}
           <div ref={glassRef} className="header-glass z-30" 
                 style={{ 
@@ -294,10 +324,10 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                 }} />
 
           {/* 
-              2. MENU OVERLAY (Z-40)
-              Updated: h-[100dvh] to fit viewport exactly. w-full left-0 for proper fit.
+             2. MENU OVERLAY (Z-40)
+             Sits on top of Glass, but below Logo.
           */}
-          <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
+          <div ref={menuOverlayRef} className="absolute top-0 left-[-1px] w-[calc(100%+2px)] h-[120vh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
                   style={{ 
                       clipPath: 'circle(0% at 90% 5%)', 
                       visibility: 'hidden',
@@ -367,12 +397,10 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
           </div>
 
           {/* 
-             3. HEADER LOGO & ICON (Z-50)
-             Wrapper h-full (100dvh) so absolute positioning (like top: 15%) works relative to viewport height.
-             Pointer events none to let clicks pass through empty space.
+             3. LOGO & ICON (Z-50)
+             Sits on top of everything.
           */}
-          <div className="relative w-full h-[100dvh] z-50 overflow-hidden pointer-events-none">
-                
+          <div className="relative w-full h-screen z-50 overflow-hidden pointer-events-none">
                 {/* Logo SVG */}
                 <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="318" height="34" viewBox="0 0 318 34" fill="none" className="pointer-events-auto overflow-visible transition-colors">
                     <g id="moet">
