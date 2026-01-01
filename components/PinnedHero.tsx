@@ -11,12 +11,11 @@ const PinnedHero: React.FC = () => {
   const maskRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const redExtensionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initial States
     gsap.set(maskRef.current, { clipPath: 'inset(0% 0% 0% 0% round 0px)' });
-    gsap.set(pinRef.current, { backgroundColor: 'transparent' });
+    gsap.set(pinRef.current, { backgroundColor: '#000000' });
 
     // Pin Animation
     // This pins the hero for 100% of the viewport height.
@@ -35,14 +34,8 @@ const PinnedHero: React.FC = () => {
     
     // Animate mask to shrink (creating the border effect)
     tl.to(maskRef.current, { clipPath: 'inset(18% 15% 5% 15% round 300px 300px 300px 300px)', duration: 0.6, ease: 'power2.inOut' }, 0);
-    // Change background to red - ensure it stays red at the end and extends fully
-    tl.to(pinRef.current, { backgroundColor: '#C00115', duration: 0.3, immediateRender: false }, 0);
-    // Show the red extension div to eliminate gap
-    if (redExtensionRef.current) {
-      tl.to(redExtensionRef.current, { opacity: 1, duration: 0.3 }, 0);
-    }
-    // Ensure red background persists after animation completes
-    tl.set(pinRef.current, { backgroundColor: '#C00115' }, 1);
+    // Change background to red
+    tl.to(pinRef.current, { backgroundColor: '#C00115', duration: 0.3 }, 0);
     
     // Parallax the background image
     tl.to(bgRef.current, { yPercent: 10, scale: 1.1, duration: 1.5, ease: 'none' }, 0);
@@ -56,22 +49,11 @@ const PinnedHero: React.FC = () => {
 
   return (
     // Added data-header-theme="white" to ensure logo is always white on the hero
-    <div id="pinned-hero-trigger" ref={pinRef} data-header-theme="white" className="relative w-full z-10" style={{ backgroundColor: 'transparent', minHeight: '100dvh', height: '100dvh', overflow: 'hidden' }}>
-         {/* Red background extension that will show when hero unpins */}
-         <div ref={redExtensionRef} className="absolute inset-0 w-full h-full bg-[#C00115] z-[-1] opacity-0" style={{ height: 'calc(100% + 2px)', bottom: '-2px' }} />
-         <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-transparent">
-            <div ref={bgRef} className="absolute w-full bg-cover bg-center" style={{ 
-              backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/f8ea16de177261070786196998039f302b305a26/moet_dance.png')`,
-              top: 'env(safe-area-inset-top, 0px)',
-              left: 0,
-              right: 0,
-              bottom: 'env(safe-area-inset-bottom, 0px)',
-              height: 'calc(100dvh + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px))',
-              marginTop: 'calc(-1 * env(safe-area-inset-top, 0px))',
-              marginBottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))'
-            }} />
+    <div id="pinned-hero-trigger" ref={pinRef} data-header-theme="white" className="relative w-full h-[100dvh] overflow-hidden bg-black z-10">
+         <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
+            <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/f8ea16de177261070786196998039f302b305a26/moet_dance.png')` }} />
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
-            <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end text-white z-10 px-4" style={{ paddingBottom: 'max(50px, env(safe-area-inset-bottom, 0px) + 50px)' }}>
+            <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end pb-[50px] text-white z-10 px-4">
                <div className="text-center max-w-2xl w-full">
                  <p className="text-[9px] tracking-[0.2em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Moët Experiences</p>
                  <h2 className="text-[24px] font-trenda font-normal leading-[1.2] mb-8 tracking-tight">Make It a Moment<br/>to Remember</h2>

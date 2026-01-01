@@ -43,14 +43,14 @@ const App: React.FC = () => {
     <div ref={containerRef} className="relative w-full min-h-screen md:bg-[#f0f0f0] md:flex md:justify-center">
       {/* 
         Container Frame
-        Transparent on mobile for immersive Safari UI, desktop keeps shadow
+        Changed bg color to #000 temporarily to blend with hero start
       */}
-      <div className="relative w-full min-h-screen desktop-constraint md:shadow-2xl bg-transparent md:bg-white">
+      <div className="relative w-full min-h-screen desktop-constraint shadow-2xl bg-[#000000]">
         
         {/* FIXED HEADER LAYER */}
         <StickyHeader theme={headerTheme} />
 
-        <main className="relative bg-transparent">
+        <main>
           {/* SCROLLABLE CONTENT LAYER */}
           <PinnedHero />
           

@@ -57,7 +57,7 @@ const F1Story: React.FC = () => {
     <section 
       id="f1-section"
       ref={containerRef} 
-      className="relative w-full h-[100dvh] overflow-hidden bg-transparent z-20"
+      className="relative w-full h-[100dvh] overflow-hidden bg-white z-20"
     >
       {/* 
          Background Image Layer 
@@ -80,10 +80,10 @@ const F1Story: React.FC = () => {
          Editorial Card Layer 
          Positioned absolutely. GSAP controls its Y-axis.
       */}
-      <div className="absolute inset-0 flex items-end justify-center pointer-events-none" style={{ paddingBottom: 'max(48px, env(safe-area-inset-bottom, 0px) + 48px)' }}>
+      <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-12">
          {/* 
             TAGGED: 'black' -> Forces BLACK Logo when over this white card
-            Updated: Compact sizing with reduced padding and gap.
+            Updated: Removed aspect-square, increased padding.
          */}
          <div 
            id="f1-card"
@@ -94,7 +94,7 @@ const F1Story: React.FC = () => {
             {/* Red Accent Border Top */}
             <div className="absolute top-0 left-0 w-full h-[3px] bg-[#C00115]" />
 
-            {/* Content Container - Use flex to distribute content within the square */}
+            {/* Content Container - Removed h-full to allow auto height */}
             <div className="w-full px-7 py-[35px] flex flex-col justify-between">
                 
                 <div className="flex flex-col gap-4">
@@ -111,8 +111,8 @@ const F1Story: React.FC = () => {
                     </p>
                 </div>
 
-                {/* CTA - Pushed to bottom by justify-between */}
-                <button className="group flex items-center gap-2 mt-2 text-[#1a1a1a] hover:opacity-70 transition-opacity">
+                {/* CTA */}
+                <button className="group flex items-center gap-2 mt-6 text-[#1a1a1a] hover:opacity-70 transition-opacity">
                     <span className="font-trenda text-[9px] font-bold tracking-[0] uppercase">
                         Step Inside The Story
                     </span>

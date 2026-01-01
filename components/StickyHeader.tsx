@@ -159,9 +159,8 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
         const initialScale = 3.1; 
         const finalScale = 0.85;   
         
-        // Initial State - Use safe-area-inset-top for initial positioning
-        const initialTop = 'calc(15% + env(safe-area-inset-top, 0px))';
-        gsap.set(svgRef.current, { position: 'absolute', top: initialTop, left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
+        // Initial State
+        gsap.set(svgRef.current, { position: 'absolute', top: '15%', left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
         gsap.set('#amp, #chandon', { opacity: 0, x: 15 });
         gsap.set(glassRef.current, { opacity: 0 });
         gsap.set(menuIconRef.current, { opacity: 0, scale: 0.5, right: '15px', top: finalLogoTop, position: 'absolute', zIndex: 50 });
@@ -217,23 +216,12 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
     if (isMenuOpen) {
         setActiveSubmenu(null); setIsNavigatingBack(false);
         gsap.set(menuOverlayRef.current, { visibility: 'visible' });
-        // Hide glass when menu opens to prevent white fade - use CSS variable instead of opacity
-        if (glassRef.current) {
-            gsap.set(headerRootRef.current, { '--glass-opacity': 0 });
-        }
         tl.to(menuOverlayRef.current, { clipPath: 'circle(150% at 90% 5%)', duration: 0.8, ease: 'power3.inOut' }, 0);
         if (menuIconRef.current) tl.to(menuIconRef.current.querySelector('.dots-container'), { rotate: 45, gap: '5px', duration: 0.5, ease: 'back.out(1.7)' }, 0.1);
         document.body.style.overflow = 'hidden';
     } else {
         if (menuListRef.current) tl.to(menuListRef.current.children, { opacity: 0, y: -10, duration: 0.2, }, 0);
-        // Keep glass hidden during menu close animation to prevent white fade - use CSS variable
-        if (glassRef.current) {
-            gsap.set(headerRootRef.current, { '--glass-opacity': 0 });
-        }
-        tl.to(menuOverlayRef.current, { clipPath: 'circle(0% at 90% 5%)', duration: 0.8, ease: 'power3.inOut', onComplete: () => { 
-            gsap.set(menuOverlayRef.current, { visibility: 'hidden' });
-            // Let sensor logic restore glass opacity after menu closes
-        } }, 0.2);
+        tl.to(menuOverlayRef.current, { clipPath: 'circle(0% at 90% 5%)', duration: 0.8, ease: 'power3.inOut', onComplete: () => { gsap.set(menuOverlayRef.current, { visibility: 'hidden' }); } }, 0.2);
         if (menuIconRef.current) tl.to(menuIconRef.current.querySelector('.dots-container'), { rotate: 0, gap: '5px', duration: 0.5, ease: 'power2.inOut' }, 0);
         document.body.style.overflow = '';
     }
@@ -278,19 +266,6 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
     // ROOT FIXED CONTAINER: Centered horizontally
     <div ref={headerRootRef} className="fixed top-0 left-0 w-full h-0 z-50 pointer-events-none flex justify-center">
       
-      {/* MENU OVERLAY - Full screen, breaks out of constraint */}
-      <div ref={menuOverlayRef} className="fixed top-0 left-0 w-screen h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
-              style={{ 
-                  clipPath: 'circle(0% at 90% 5%)', 
-                  visibility: 'hidden',
-                  paddingTop: 'calc(115px + env(safe-area-inset-top))',
-                  paddingLeft: 'max(30px, env(safe-area-inset-left, 0px) + 30px)',
-                  paddingRight: 'max(30px, env(safe-area-inset-right, 0px) + 30px)',
-                  width: '100vw',
-                  left: 0,
-                  right: 0
-              }}>
-      
       {/* 
          INNER CONSTRAINT WRAPPER:
          Ensures logo respects the desktop max-width (393px equivalent scale).
@@ -302,6 +277,13 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
         style={{ maxWidth: 'calc(100vh * (393 / 769))' }} // Matches .desktop-constraint in index.html
       >
         
+          {/* MENU OVERLAY */}
+          <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
+                  style={{ 
+                      clipPath: 'circle(0% at 90% 5%)', 
+                      visibility: 'hidden',
+                      paddingTop: 'calc(115px + env(safe-area-inset-top))' 
+                  }}>
                 {/* Menu List Content */}
                 <div ref={menuListRef} className="flex flex-col w-full h-full pb-10">
                     {activeSubmenu === null ? (
@@ -367,16 +349,15 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
 
           {/* HEADER VISUALS (GLASS & LOGO) */}
           <div className="relative w-full h-screen z-50 overflow-hidden pointer-events-none">
-                {/* Glass Background - separate layer */}
+                {/* Glass Background */}
                 <div ref={glassRef} className="header-glass absolute top-0 left-0 w-full" 
                       style={{ 
                           position: 'absolute',
                           height: 'calc(160px + env(safe-area-inset-top))',
-                          opacity: 1, // Always visible, opacity controlled by CSS variable
                       }} />
                 
-                {/* Logo SVG - always visible, independent of glass */}
-                <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="318" height="34" viewBox="0 0 318 34" fill="none" className="pointer-events-auto overflow-visible transition-colors" style={{ opacity: 1, visibility: 'visible' }}>
+                {/* Logo SVG */}
+                <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="318" height="34" viewBox="0 0 318 34" fill="none" className="pointer-events-auto overflow-visible transition-colors">
                     <g id="moet">
                       <path d="M25.4569 9.8501L28.1813 7.14246C27.0355 7.14246 23.3496 7.14246 21.3223 7.13435C18.9986 12.5091 15.9056 19.4647 15.2485 20.8995L8.86226 7.11814H1.89905L4.63145 9.88253C4.63145 9.88253 2.66829 28.7225 2.54810 30.2142L0 32.7029H7.04333L4.39106 30.1088L6.26608 12.1443L14.1107 27.8389C14.6556 26.5986 20.9697 12.4118 21.3063 11.6011C21.3864 12.3308 23.8383 29.6143 23.8864 30.2628L21.4906 32.711H30.9378L28.3256 30.1007C28.2855 29.5332 25.5691 11.0418 25.4569 9.8501Z" style={{ fill: 'var(--logo-color)' }} />
                       <path d="M43.6465 6.60738C37.2442 6.60738 32.0599 12.4685 32.0599 19.8537C32.0599 27.239 37.2522 33.2136 43.6465 33.2136C50.0408 33.2136 55.2412 27.2309 55.2412 19.8537C55.2412 12.4766 50.0488 6.60738 43.6465 6.60738ZM43.6706 31.4788C39.568 31.4788 36.8356 26.4769 36.8356 19.8862C36.8356 13.2954 39.568 8.41517 43.6706 8.41517C47.7731 8.41517 50.5055 13.2954 50.5055 19.8862C50.5055 26.4769 47.7731 31.4788 43.6706 31.4788Z" style={{ fill: 'var(--logo-color)' }} />
