@@ -369,17 +369,18 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                             {/* Submenu Visuals */}
                             {/* 
                                FIXED VISUALS LAYOUT:
-                               - Height: Reduced to 60vh to prevent overlap with top menu items.
-                               - Position: Absolute bottom-0.
-                               - Padding: Includes safe-area-inset-bottom.
+                               - Height: 60vh container (kept as anchor).
+                               - Removed drop shadows from images.
+                               - Increased padding bottom to 5vh.
                             */}
                             <div className="absolute bottom-0 left-[-30px] w-[calc(100%+60px)] h-[60vh] flex flex-col justify-end z-10 pointer-events-auto">
                                 {MENU_DATA.submenus[activeSubmenu].layout === 'bottles' ? (
                                     <div ref={carouselContainerRef} className="w-full h-full overflow-x-auto overflow-y-hidden cursor-grab [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                        <div ref={carouselTrackRef} className="flex items-end h-full px-[30px] pb-[calc(20px+env(safe-area-inset-bottom))]">
+                                        <div ref={carouselTrackRef} className="flex items-end h-full px-[30px] pb-[calc(5vh+env(safe-area-inset-bottom))]">
                                             {CHAMPAGNE_LIST.map((bottle, i) => (
-                                                <div key={i} className="relative flex flex-col items-center justify-end shrink-0 w-[140px] md:w-[180px] h-full mx-2">
-                                                    <img src={bottle.image} alt={bottle.name} className="h-auto max-h-[35vh] w-auto object-contain drop-shadow-xl pointer-events-none transition-transform duration-300 hover:scale-105" />
+                                                <div key={i} className="relative flex flex-col items-center justify-end shrink-0 w-[140px] md:w-[180px] h-full mx-1">
+                                                    {/* Increased max-h to 33vh (~10% bigger than 30vh) */}
+                                                    <img src={bottle.image} alt={bottle.name} className="h-auto max-h-[33vh] w-auto object-contain pointer-events-none transition-transform duration-300 hover:scale-105" />
                                                     <p className="mt-4 text-center font-trenda text-[10px] font-normal tracking-[0.05em] text-[#1a1a1a] max-w-[130px] leading-tight">{bottle.name}</p>
                                                 </div>
                                             ))}
@@ -387,8 +388,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                                     </div>
                                 ) : (
                                     MENU_DATA.submenus[activeSubmenu].card && (
-                                    <div className="w-full px-[30px] pb-[calc(20px+env(safe-area-inset-bottom))]">
-                                        <div className="w-full h-[180px] rounded-sm overflow-hidden mb-4 shadow-lg">
+                                    <div className="w-full px-[30px] pb-[calc(5vh+env(safe-area-inset-bottom))]">
+                                        <div className="w-full h-[180px] rounded-sm overflow-hidden mb-4">
+                                            {/* Removed shadow-lg */}
                                             <img src={MENU_DATA.submenus[activeSubmenu].card?.image} alt="Feature" className="w-full h-full object-cover"/>
                                         </div>
                                         <span className="text-[#C00115] text-[9px] font-bold tracking-[0.15em] uppercase block mb-1">{MENU_DATA.submenus[activeSubmenu].card?.subtitle}</span>
