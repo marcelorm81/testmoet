@@ -214,7 +214,7 @@ const CraftsmanshipCarousel: React.FC = () => {
                    {slide.title}
                  </h2>
                  
-                 <p className="text-[#FFFBF7]/90 font-trenda text-[10px] leading-[1.6] font-light mb-8 pr-4 drop-shadow-md">
+                 <p className="text-[#FFFBF7]/90 font-trenda text-[11px] leading-[1.6] font-light mb-8 pr-4 drop-shadow-md">
                    {slide.desc}
                  </p>
 

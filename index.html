@@ -16,10 +16,25 @@
         font-style: normal;
       }
 
+      @font-face {
+        font-family: 'Trenda';
+        src: url('https://raw.githubusercontent.com/marcelorm81/assets/0935adcbe5d5ee916d28d53127b5035cd7d71550/Trenda-Regular.woff2') format('woff2');
+        font-weight: 400; /* Regular */
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: 'Trenda';
+        src: url('https://raw.githubusercontent.com/marcelorm81/assets/0935adcbe5d5ee916d28d53127b5035cd7d71550/Trenda-Semibold.woff2') format('woff2');
+        font-weight: 600; /* Semibold */
+        font-style: normal;
+      }
+
       @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
       :root {
-        --trenda-font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        /* Updated to use Trenda as primary, Inter as fallback */
+        --trenda-font: 'Trenda', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         /* Default Logo Color (White) and Glass Opacity */
         --logo-color: #FFFBF7;
         --glass-opacity: 0;
