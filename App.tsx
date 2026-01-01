@@ -50,7 +50,7 @@ const App: React.FC = () => {
         {/* FIXED HEADER LAYER */}
         <StickyHeader theme={headerTheme} />
 
-        <main>
+        <main className="relative">
           {/* SCROLLABLE CONTENT LAYER */}
           <PinnedHero />
           
