@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, MapPin, ChevronRight } from 'lucide-react';
@@ -102,29 +102,72 @@ const ExperienceSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   // Drag State for Desktop Mouse Interaction
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
 
-  // --- ENTRANCE ANIMATION ---
-  useEffect(() => {
-    if (titleRef.current) {
-      gsap.fromTo(titleRef.current, 
-        { y: 60, opacity: 0 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 1, 
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 80%",
-          }
+  // --- ANIMATIONS ---
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+        // 1. Title Interaction: Fade Out on Scroll Up (Exit to header)
+        // No initial entrance animation - it exists statically.
+        if (titleRef.current) {
+            gsap.to(titleRef.current, {
+                opacity: 0,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: titleRef.current,
+                    // Start fading out when the top of the title is 180px from top of viewport
+                    start: "top 180px", 
+                    // Fully faded out when it reaches 80px from top
+                    end: "top 80px",   
+                    scrub: true,
+                }
+            });
         }
-      );
-    }
+
+        // 2. Filters Entrance: Phased Fade In Up
+        if (filterRef.current) {
+            gsap.fromTo(filterRef.current.children, 
+                { y: 30, opacity: 0 },
+                {
+                    y: 0, 
+                    opacity: 1,
+                    duration: 0.8,
+                    stagger: 0.1, // One by one
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: filterRef.current,
+                        start: "top 90%", // Start animating when near bottom of viewport
+                    }
+                }
+            );
+        }
+
+        // 3. Carousel Entrance: Phased Fade In Up
+        if (scrollContainerRef.current) {
+            const cards = gsap.utils.toArray('.experience-card');
+            gsap.fromTo(cards, 
+                { y: 50, opacity: 0 },
+                {
+                    y: 0, 
+                    opacity: 1,
+                    duration: 1.0,
+                    stagger: 0.15, // Elegant discrete cascade
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: scrollContainerRef.current,
+                        start: "top 85%", 
+                    }
+                }
+            );
+        }
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
   // --- FILTER ANIMATION ---
@@ -211,24 +254,26 @@ const ExperienceSection: React.FC = () => {
 
   return (
     // Tagged 'black' so the main white area enforces a Black Logo
+    // Removed 'reveal-section' class to use custom internal phased animations
     <section 
       id="experience-section" 
       data-header-theme="black"
       ref={containerRef} 
-      className="reveal-section pt-32 pb-10 bg-white overflow-hidden"
+      className="pt-32 pb-10 bg-white overflow-hidden"
     >
       <div className="w-full flex flex-col items-center">
         
         {/* HEADER */}
+        {/* Title starts visible, fades out when scrolling up near header */}
         <h2 
           ref={titleRef}
-          className="font-handwritten text-[32px] md:text-[40px] text-[#1a1a1a] mb-20 relative z-0 select-none leading-[1.1] text-center"
+          className="font-handwritten text-[32px] md:text-[40px] text-[#1a1a1a] mb-20 relative z-0 select-none leading-[1.1] text-center will-change-opacity"
         >
           Our<br/>Experiences
         </h2>
 
         {/* FILTERS */}
-        <div className="flex flex-wrap justify-center gap-6 mb-8 px-6">
+        <div ref={filterRef} className="flex flex-wrap justify-center gap-6 mb-8 px-6">
           {CATEGORIES.map((cat) => (
             <button 
               key={cat}

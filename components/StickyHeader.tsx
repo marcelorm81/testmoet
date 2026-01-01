@@ -156,8 +156,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
         // --- A. Shrink Animation ---
         const finalLogoTop = 'calc(45px + env(safe-area-inset-top))'; 
         const logoLeft = '30px'; 
-        const initialScale = 3.1; 
-        const finalScale = 0.85;   
+        // UPDATED SCALES
+        const initialScale = 3.2; 
+        const finalScale = 0.9;   
         
         // Initial State
         gsap.set(svgRef.current, { position: 'absolute', top: '15%', left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
@@ -357,7 +358,8 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                 <div ref={glassRef} className="header-glass absolute top-0 left-0 w-full" 
                       style={{ 
                           position: 'absolute',
-                          height: 'calc(160px + env(safe-area-inset-top))',
+                          // UPDATED GLASS HEIGHT
+                          height: 'calc(170px + env(safe-area-inset-top))',
                       }} />
                 
                 {/* Logo SVG */}
