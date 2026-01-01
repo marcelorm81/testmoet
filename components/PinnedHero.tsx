@@ -55,8 +55,12 @@ const PinnedHero: React.FC = () => {
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
             <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end pb-[50px] text-white z-10 px-4">
                <div className="text-center max-w-2xl w-full">
-                 <p className="text-[9px] tracking-[0.2em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Moët Experiences</p>
-                 <h2 className="text-[24px] font-trenda font-normal leading-[1.2] mb-8 tracking-tight">Make It a Moment<br/>to Remember</h2>
+                 {/* Subtitle: 9px, Semibold, LineHeight 1, Tracking 0.1em, Uppercase */}
+                 <p className="text-[9px] tracking-[0.1em] uppercase mb-5 opacity-90 font-semibold font-trenda leading-none">Moët Experiences</p>
+                 
+                 {/* Title: 22px, Normal, LineHeight 1.1, Tracking -0.025em */}
+                 <h2 className="text-[22px] font-trenda font-normal leading-[1.1] mb-8 tracking-[-0.025em]">Make It a Moment<br/>to Remember</h2>
+                 
                  <button className="mx-auto flex items-center space-x-3 bg-white/10 backdrop-blur-2xl px-6 py-3 rounded-[4px] hover:bg-white hover:text-[#C00115] transition-all duration-500 group shadow-[0_15px_40px_rgba(0,0,0,0.3)]"><span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">DISCOVER</span><div className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 group-hover:bg-[#C00115]/20 transition-colors"><ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" /></div></button>
                </div>
             </div>
