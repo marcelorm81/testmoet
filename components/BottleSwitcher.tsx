@@ -266,21 +266,22 @@ const BottleSwitcher: React.FC<BottleSwitcherProps> = ({ onThemeChange }) => {
 
               <button 
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-3 px-6 py-3 rounded-[4px] backdrop-blur-2xl transition-all duration-300 active:scale-95 shrink-0 group"
+                // Using CSS variables for dynamic coloring to allow hover overrides
+                className="flex items-center gap-3 px-6 py-3 rounded-[4px] backdrop-blur-2xl transition-all duration-300 active:scale-95 shrink-0 group border bg-[var(--btn-bg)] border-[var(--btn-border)] text-[var(--btn-text)] hover:bg-white hover:border-white hover:text-[#C00115]"
                 style={{ 
-                  backgroundColor: index === 1 ? 'transparent' : 'rgba(255, 255, 255, 0.10)',
-                  color: currentBottle.textColor,
-                  border: `1px solid ${index === 1 ? '#1a1a1a' : 'rgba(255,255,255,0.2)'}`
-                }}
+                  '--btn-bg': index === 1 ? 'transparent' : 'rgba(255, 255, 255, 0.10)',
+                  '--btn-border': index === 1 ? '#1a1a1a' : 'rgba(255,255,255,0.2)',
+                  '--btn-text': currentBottle.textColor,
+                  '--icon-bg': index === 1 ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.20)'
+                } as React.CSSProperties}
               >
                   <span className="text-[9px] tracking-[0.02em] uppercase font-black font-trenda leading-none">
                     DISCOVER
                   </span>
                   <div 
-                    className="w-4 h-4 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: index === 1 ? 'rgba(0,0,0,0.1)' : 'rgba(255, 255, 255, 0.20)' }}
+                    className="w-4 h-4 flex items-center justify-center rounded-full transition-colors bg-[var(--icon-bg)] group-hover:bg-[rgba(192,1,21,0.2)]"
                   >
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </div>
               </button>
 

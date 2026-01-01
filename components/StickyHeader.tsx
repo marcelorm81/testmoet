@@ -269,21 +269,35 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
       
       {/* 
          INNER CONSTRAINT WRAPPER:
-         Ensures logo respects the desktop max-width (393px equivalent scale).
-         We apply the CSS max-width calculation inline to ensure it matches exactly what index.html uses.
+         Ensures logo respects the desktop max-width (393px equivalent scale) via CSS class.
+         We remove the inline style to allow the class media query to handle full-width on mobile.
+         We override the class shadow since the header floats and shouldn't cast the device frame shadow.
       */}
       <div 
         ref={headerContentRef}
-        className="w-full h-full relative"
-        style={{ maxWidth: 'calc(100vh * (393 / 769))' }} // Matches .desktop-constraint in index.html
+        className="w-full h-full relative desktop-constraint"
+        style={{ boxShadow: 'none' }}
       >
         
-          {/* MENU OVERLAY */}
           {/* 
-             Updated Width: w-[calc(100%+2px)] and left-[-1px] to ensure it bleeds slightly to cover any sub-pixel gaps.
-             Updated Height: h-[120vh] to aggressively cover the full mobile canvas even if address bar hides/shows or scrolling occurs.
+              1. HEADER GLASS (Z-30)
+              Moved here so it sits BEHIND the menu (Z-40).
+              Position set to 'absolute' to respect the desktop-constraint width.
           */}
-          <div ref={menuOverlayRef} className="absolute top-0 left-[-1px] w-[calc(100%+2px)] h-[120vh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
+          <div ref={glassRef} className="header-glass z-30" 
+                style={{ 
+                    position: 'absolute',
+                    top: 0, 
+                    left: 0,
+                    width: '100%',
+                    height: 'calc(170px + env(safe-area-inset-top))',
+                }} />
+
+          {/* 
+              2. MENU OVERLAY (Z-40)
+              Updated: h-[100dvh] to fit viewport exactly. w-full left-0 for proper fit.
+          */}
+          <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
                   style={{ 
                       clipPath: 'circle(0% at 90% 5%)', 
                       visibility: 'hidden',
@@ -352,15 +366,12 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                 </div>
           </div>
 
-          {/* HEADER VISUALS (GLASS & LOGO) */}
-          <div className="relative w-full h-screen z-50 overflow-hidden pointer-events-none">
-                {/* Glass Background */}
-                <div ref={glassRef} className="header-glass absolute top-0 left-0 w-full" 
-                      style={{ 
-                          position: 'absolute',
-                          // UPDATED GLASS HEIGHT
-                          height: 'calc(170px + env(safe-area-inset-top))',
-                      }} />
+          {/* 
+             3. HEADER LOGO & ICON (Z-50)
+             Wrapper h-full (100dvh) so absolute positioning (like top: 15%) works relative to viewport height.
+             Pointer events none to let clicks pass through empty space.
+          */}
+          <div className="relative w-full h-[100dvh] z-50 overflow-hidden pointer-events-none">
                 
                 {/* Logo SVG */}
                 <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="318" height="34" viewBox="0 0 318 34" fill="none" className="pointer-events-auto overflow-visible transition-colors">
