@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Theme color for Safari liquid glass UI - transparent allows content to show through -->
+    <meta name="theme-color" content="transparent" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="transparent" media="(prefers-color-scheme: dark)">
+    <!-- Safari specific: Enable content to extend behind system UI -->
+    <meta name="apple-touch-fullscreen" content="yes">
     <title>Moët & Chandon | Celebrate the Right Way</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -28,10 +33,16 @@
       html, body {
         width: 100%;
         overscroll-behavior-y: none; /* Helps prevent white bounce on some browsers */
+        /* Safari liquid glass UI: Ensure content extends behind system UI */
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
       }
 
       html {
         background-color: transparent; /* Transparent for immersive Safari UI */
+        /* Safari: Allow content to extend behind status bar and bottom bar */
+        height: 100%;
+        height: -webkit-fill-available; /* iOS Safari fix */
       }
 
       body {
@@ -41,6 +52,18 @@
         font-family: var(--trenda-font);
         color: #000;
         -webkit-font-smoothing: antialiased;
+        /* Safari: Ensure body extends to full viewport including safe areas */
+        min-height: 100vh;
+        min-height: -webkit-fill-available; /* iOS Safari fix */
+        min-height: 100dvh; /* Dynamic viewport height for modern browsers */
+      }
+
+      /* Root element must also be transparent for Safari liquid glass UI */
+      #root {
+        background-color: transparent;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        min-height: 100dvh;
       }
 
       .font-trenda { font-family: var(--trenda-font); }

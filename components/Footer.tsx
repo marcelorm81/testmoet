@@ -53,7 +53,11 @@ const Footer: React.FC = () => {
   }, []);
 
   return (
-    <footer id="main-footer" ref={containerRef} data-header-theme="white" className="bg-black text-white w-full pt-10 px-6 flex flex-col items-center relative z-20 overflow-hidden" style={{ paddingBottom: 'max(80px, env(safe-area-inset-bottom, 0px) + 80px)' }}>
+    <footer id="main-footer" ref={containerRef} data-header-theme="white" className="bg-black text-white w-full pt-10 px-6 flex flex-col items-center relative z-20 overflow-hidden" style={{ 
+      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+      marginBottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
+      minHeight: 'calc(100% + env(safe-area-inset-bottom, 0px))'
+    }}>
       
       {/* 1. NEWSLETTER SIGN-IN MOMENT */}
       <div ref={newsletterRef} className="flex flex-col items-center w-full max-w-md text-center mb-16 mt-8">
