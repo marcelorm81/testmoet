@@ -57,7 +57,7 @@ const F1Story: React.FC = () => {
     <section 
       id="f1-section"
       ref={containerRef} 
-      className="relative w-full h-[100dvh] overflow-hidden bg-white z-20"
+      className="relative w-full h-[100dvh] overflow-hidden bg-transparent z-20"
     >
       {/* 
          Background Image Layer 

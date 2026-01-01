@@ -53,7 +53,14 @@ const PinnedHero: React.FC = () => {
     // Added data-header-theme="white" to ensure logo is always white on the hero
     <div id="pinned-hero-trigger" ref={pinRef} data-header-theme="white" className="relative w-full h-[100dvh] overflow-hidden z-10" style={{ backgroundColor: 'transparent' }}>
          <div ref={maskRef} className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-transparent">
-            <div ref={bgRef} className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/f8ea16de177261070786196998039f302b305a26/moet_dance.png')` }} />
+            <div ref={bgRef} className="absolute w-full h-full bg-cover bg-center" style={{ 
+              backgroundImage: `url('https://raw.githubusercontent.com/marcelorm81/assets/f8ea16de177261070786196998039f302b305a26/moet_dance.png')`,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              minHeight: '100dvh'
+            }} />
             <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0 pointer-events-none" />
             <div ref={contentRef} className="absolute inset-0 flex flex-col items-center justify-end text-white z-10 px-4" style={{ paddingBottom: 'max(50px, env(safe-area-inset-bottom, 0px) + 50px)' }}>
                <div className="text-center max-w-2xl w-full">

@@ -159,8 +159,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
         const initialScale = 3.1; 
         const finalScale = 0.85;   
         
-        // Initial State
-        gsap.set(svgRef.current, { position: 'absolute', top: '15%', left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
+        // Initial State - Use safe-area-inset-top for initial positioning
+        const initialTop = 'calc(15% + env(safe-area-inset-top, 0px))';
+        gsap.set(svgRef.current, { position: 'absolute', top: initialTop, left: logoLeft, x: 0, xPercent: 0, scale: initialScale, width: '318px', transformOrigin: 'left center', zIndex: 50 });
         gsap.set('#amp, #chandon', { opacity: 0, x: 15 });
         gsap.set(glassRef.current, { opacity: 0 });
         gsap.set(menuIconRef.current, { opacity: 0, scale: 0.5, right: '15px', top: finalLogoTop, position: 'absolute', zIndex: 50 });
