@@ -327,14 +327,14 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
              2. MENU OVERLAY (Z-40)
              Sits on top of Glass, but below Logo.
           */}
-          <div ref={menuOverlayRef} className="absolute top-0 left-[-1px] w-[calc(100%+2px)] h-[120vh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
+          <div ref={menuOverlayRef} className="absolute top-0 left-[-1px] w-[calc(100%+2px)] h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
                   style={{ 
                       clipPath: 'circle(0% at 90% 5%)', 
                       visibility: 'hidden',
                       paddingTop: 'calc(115px + env(safe-area-inset-top))' 
                   }}>
                 {/* Menu List Content */}
-                <div ref={menuListRef} className="flex flex-col w-full h-full pb-10">
+                <div ref={menuListRef} className="flex flex-col w-full h-full pb-0 relative">
                     {activeSubmenu === null ? (
                         <>
                         <div className="flex flex-col gap-5">
@@ -345,7 +345,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-auto w-full flex items-center justify-between pb-6">
+                        <div className="mt-auto w-full flex items-center justify-between pb-[calc(20px+env(safe-area-inset-bottom))]">
                             <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">Newsletter</span><ChevronRight size={10} className="text-[#C00115] stroke-[3]" /></button>
                             <button className="flex items-center gap-2 group hover:opacity-70 transition-opacity"><span className="font-trenda text-[12px] font-medium uppercase tracking-wide text-[#1a1a1a]">English</span><ChevronRight size={10} className="text-[#C00115] stroke-[3]" /></button>
                         </div>
@@ -367,22 +367,28 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
                                 ))}
                             </div>
                             {/* Submenu Visuals */}
-                            <div className="absolute bottom-0 left-[-30px] w-[calc(100%+60px)] h-[80vh] flex flex-col justify-end z-10 pointer-events-auto">
+                            {/* 
+                               FIXED VISUALS LAYOUT:
+                               - Height: Reduced to 60vh to prevent overlap with top menu items.
+                               - Position: Absolute bottom-0.
+                               - Padding: Includes safe-area-inset-bottom.
+                            */}
+                            <div className="absolute bottom-0 left-[-30px] w-[calc(100%+60px)] h-[60vh] flex flex-col justify-end z-10 pointer-events-auto">
                                 {MENU_DATA.submenus[activeSubmenu].layout === 'bottles' ? (
                                     <div ref={carouselContainerRef} className="w-full h-full overflow-x-auto overflow-y-hidden cursor-grab [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                        <div ref={carouselTrackRef} className="flex items-end h-full px-[30px] pt-20 pb-1">
+                                        <div ref={carouselTrackRef} className="flex items-end h-full px-[30px] pb-[calc(20px+env(safe-area-inset-bottom))]">
                                             {CHAMPAGNE_LIST.map((bottle, i) => (
-                                                <div key={i} className="relative flex flex-col items-center justify-end shrink-0 w-[180px] h-full mx-2">
-                                                    <img src={bottle.image} alt={bottle.name} className="h-auto max-h-[55vh] w-auto object-contain drop-shadow-xl pointer-events-none transition-transform duration-300 hover:scale-105" />
-                                                    <p className="mt-4 text-center font-trenda text-[10px] font-normal tracking-[0.05em] text-[#1a1a1a] max-w-[150px] leading-tight">{bottle.name}</p>
+                                                <div key={i} className="relative flex flex-col items-center justify-end shrink-0 w-[140px] md:w-[180px] h-full mx-2">
+                                                    <img src={bottle.image} alt={bottle.name} className="h-auto max-h-[35vh] w-auto object-contain drop-shadow-xl pointer-events-none transition-transform duration-300 hover:scale-105" />
+                                                    <p className="mt-4 text-center font-trenda text-[10px] font-normal tracking-[0.05em] text-[#1a1a1a] max-w-[130px] leading-tight">{bottle.name}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 ) : (
                                     MENU_DATA.submenus[activeSubmenu].card && (
-                                    <div className="w-full px-[30px] pb-2">
-                                        <div className="w-full h-[180px] rounded-sm overflow-hidden mb-4">
+                                    <div className="w-full px-[30px] pb-[calc(20px+env(safe-area-inset-bottom))]">
+                                        <div className="w-full h-[180px] rounded-sm overflow-hidden mb-4 shadow-lg">
                                             <img src={MENU_DATA.submenus[activeSubmenu].card?.image} alt="Feature" className="w-full h-full object-cover"/>
                                         </div>
                                         <span className="text-[#C00115] text-[9px] font-bold tracking-[0.15em] uppercase block mb-1">{MENU_DATA.submenus[activeSubmenu].card?.subtitle}</span>
