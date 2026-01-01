@@ -278,7 +278,11 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ theme = 'light' }) => {
       >
         
           {/* MENU OVERLAY */}
-          <div ref={menuOverlayRef} className="absolute top-0 left-0 w-full h-[100dvh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
+          {/* 
+             Updated Width: w-[calc(100%+2px)] and left-[-1px] to ensure it bleeds slightly to cover any sub-pixel gaps.
+             Updated Height: h-[120vh] to aggressively cover the full mobile canvas even if address bar hides/shows or scrolling occurs.
+          */}
+          <div ref={menuOverlayRef} className="absolute top-0 left-[-1px] w-[calc(100%+2px)] h-[120vh] bg-[#FFFBF7] z-40 flex flex-col justify-start px-[30px] pointer-events-auto" 
                   style={{ 
                       clipPath: 'circle(0% at 90% 5%)', 
                       visibility: 'hidden',

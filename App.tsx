@@ -54,7 +54,12 @@ const App: React.FC = () => {
           {/* SCROLLABLE CONTENT LAYER */}
           <PinnedHero />
           
-          <div className="relative z-10 bg-[#C00115]">
+          {/* 
+             Changed bg-[#C00115] to bg-white.
+             The red background was causing a red line to appear between F1Story (white) and ExperienceSection (white)
+             due to sub-pixel rendering gaps during GSAP pinning.
+          */}
+          <div className="relative z-10 bg-white">
              <BottleSwitcher onThemeChange={setHeaderTheme} />
              <F1Story />
              <ExperienceSection />
